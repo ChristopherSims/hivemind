@@ -1,0 +1,29 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "call_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Call Id",
+      "type": "string"
+    },
+    "success": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Success"
+    }
+  },
+  "required": [
+    "call_id"
+  ],
+  "title": "ToolEnd",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,17 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id"
+  ],
+  "title": "DeliveryClaim",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

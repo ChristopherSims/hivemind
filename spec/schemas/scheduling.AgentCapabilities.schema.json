@@ -1,0 +1,18 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "capabilities": {
+      "items": {
+        "maxLength": 64,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 32,
+      "title": "Capabilities",
+      "type": "array"
+    }
+  },
+  "title": "AgentCapabilities",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

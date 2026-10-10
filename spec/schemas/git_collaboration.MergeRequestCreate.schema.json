@@ -1,0 +1,50 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "workspace_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Workspace Id",
+      "type": "string"
+    },
+    "task_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "source_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Source Oid",
+      "type": "string"
+    },
+    "target_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Target Oid",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 512,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "workspace_id",
+    "task_id",
+    "source_oid",
+    "target_oid",
+    "title"
+  ],
+  "title": "MergeRequestCreate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

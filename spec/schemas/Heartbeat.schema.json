@@ -1,0 +1,13 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "capture_health": {
+      "additionalProperties": true,
+      "title": "Capture Health",
+      "type": "object"
+    }
+  },
+  "title": "Heartbeat",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

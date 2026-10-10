@@ -1,0 +1,85 @@
+{
+  "$defs": {
+    "VerificationEvidenceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "artifact",
+            "board_post"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ],
+      "title": "VerificationEvidenceRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "execution_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Execution Id",
+      "type": "string"
+    },
+    "summary": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "artifact_refs": {
+      "items": {
+        "$ref": "#/$defs/VerificationEvidenceRef"
+      },
+      "maxItems": 32,
+      "title": "Artifact Refs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "run_id",
+    "execution_id",
+    "summary"
+  ],
+  "title": "CorrectionResolve",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

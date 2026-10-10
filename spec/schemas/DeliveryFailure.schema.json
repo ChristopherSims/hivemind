@@ -1,0 +1,34 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "delivery_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Delivery Id",
+      "type": "string"
+    },
+    "reason": {
+      "enum": [
+        "handler_failed",
+        "interrupted",
+        "temporary_unavailable"
+      ],
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "delivery_id",
+    "reason"
+  ],
+  "title": "DeliveryFailure",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

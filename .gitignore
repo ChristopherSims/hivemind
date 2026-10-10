@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.hivemind-data/
+.hivemind-test/
+node_modules/
+dashboard/dist/
+test-results/
+playwright-report/
+*.egg-info/

@@ -1,0 +1,30 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "scope_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "title": "Scope Ids",
+      "type": "array"
+    },
+    "paths": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "Paths",
+      "type": "array"
+    }
+  },
+  "required": [
+    "scope_ids"
+  ],
+  "title": "PermitRequest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,110 @@
+{
+  "$defs": {
+    "Ref": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "agent",
+            "run",
+            "task",
+            "event",
+            "artifact",
+            "board_post",
+            "memory",
+            "scope",
+            "work_claim",
+            "conflict",
+            "control",
+            "decision"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ],
+      "title": "Ref",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "left_memory_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Left Memory Id",
+      "type": "string"
+    },
+    "right_memory_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Right Memory Id",
+      "type": "string"
+    },
+    "left_revision": {
+      "minimum": 1,
+      "title": "Left Revision",
+      "type": "integer"
+    },
+    "right_revision": {
+      "minimum": 1,
+      "title": "Right Revision",
+      "type": "integer"
+    },
+    "reason": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "evidence_refs": {
+      "items": {
+        "$ref": "#/$defs/Ref"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "title": "Evidence Refs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "project_id",
+    "left_memory_id",
+    "right_memory_id",
+    "left_revision",
+    "right_revision",
+    "reason",
+    "evidence_refs"
+  ],
+  "title": "MemoryDisputeCreate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

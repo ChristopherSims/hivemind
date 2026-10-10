@@ -1,0 +1,39 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "limit": {
+      "default": 1,
+      "maximum": 8,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    },
+    "job_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 8,
+      "title": "Job Ids",
+      "type": "array"
+    },
+    "include_suggestions": {
+      "default": true,
+      "title": "Include Suggestions",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "project_id"
+  ],
+  "title": "ProcessRequest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

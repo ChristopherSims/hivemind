@@ -1,0 +1,43 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "task_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "execution_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Execution Id",
+      "type": "string"
+    },
+    "target_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Target Oid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "task_id",
+    "run_id",
+    "execution_id",
+    "target_oid"
+  ],
+  "title": "GitWorkspaceFetch",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

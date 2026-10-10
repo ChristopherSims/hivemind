@@ -1,0 +1,53 @@
+{
+  "additionalProperties": false,
+  "description": "Strictly validated structured verdict; extra keys are rejected.",
+  "properties": {
+    "decision": {
+      "enum": [
+        "approve",
+        "reject"
+      ],
+      "title": "Decision",
+      "type": "string"
+    },
+    "reason": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "source_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Source Oid",
+      "type": "string"
+    },
+    "target_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Target Oid",
+      "type": "string"
+    },
+    "candidate_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Candidate Oid",
+      "type": "string"
+    },
+    "findings": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 32,
+      "title": "Findings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "decision",
+    "reason",
+    "source_oid",
+    "target_oid",
+    "candidate_oid"
+  ],
+  "title": "ReviewerVerdict",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

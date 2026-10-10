@@ -1,0 +1,28 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "reason": {
+      "maxLength": 1024,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "notify": {
+      "default": true,
+      "title": "Notify",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "reason"
+  ],
+  "title": "ConversationCancel",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,6 @@
+Hivemind reference implementation
+
+Storage uses sqlite-vec 0.1.9 (MIT license option) and LadybugDB/ladybug 0.21.2 (MIT).
+LadybugDB copyright (c) 2022-2025 Kùzu Inc. and (c) 2025-2026 Ladybug Memory Inc.
+EmbeddingGemma 2 weights are not included in source and have separate model terms.
+See docs/licensing.md for pinned versions, model revision, and redistribution gates.

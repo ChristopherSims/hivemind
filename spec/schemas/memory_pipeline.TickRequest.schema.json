@@ -1,0 +1,15 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "limit": {
+      "default": 2,
+      "maximum": 8,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    }
+  },
+  "title": "TickRequest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

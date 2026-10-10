@@ -1,0 +1,21 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "events": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Events",
+      "type": "array"
+    }
+  },
+  "required": [
+    "events"
+  ],
+  "title": "Batch",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

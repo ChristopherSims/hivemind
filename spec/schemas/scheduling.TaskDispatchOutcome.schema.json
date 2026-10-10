@@ -1,0 +1,109 @@
+{
+  "$defs": {
+    "TaskEvidenceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "board_post",
+            "artifact"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ],
+      "title": "TaskEvidenceRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Agent self-report of how a dispatched attempt ended; never treated as verification.",
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "agent_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "execution_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Execution Id"
+    },
+    "outcome": {
+      "enum": [
+        "succeeded",
+        "failed"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "summary": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "evidence_refs": {
+      "items": {
+        "$ref": "#/$defs/TaskEvidenceRef"
+      },
+      "maxItems": 32,
+      "title": "Evidence Refs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "agent_id",
+    "run_id",
+    "outcome",
+    "summary"
+  ],
+  "title": "TaskDispatchOutcome",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

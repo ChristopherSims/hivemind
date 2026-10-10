@@ -1,0 +1,28 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "path": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Path",
+      "type": "string",
+      "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*[:\\u0000]).+$"
+    },
+    "change": {
+      "enum": [
+        "created",
+        "modified",
+        "deleted"
+      ],
+      "title": "Change",
+      "type": "string"
+    }
+  },
+  "required": [
+    "path",
+    "change"
+  ],
+  "title": "FileData",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

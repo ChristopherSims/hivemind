@@ -1,0 +1,50 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "source_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Source Oid",
+      "type": "string"
+    },
+    "target_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Target Oid",
+      "type": "string"
+    },
+    "candidate_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Candidate Oid",
+      "type": "string"
+    },
+    "decision": {
+      "enum": [
+        "approve",
+        "reject"
+      ],
+      "title": "Decision",
+      "type": "string"
+    },
+    "reason": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "source_oid",
+    "target_oid",
+    "candidate_oid",
+    "decision",
+    "reason"
+  ],
+  "title": "MergeRequestReview",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

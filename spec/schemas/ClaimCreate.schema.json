@@ -1,0 +1,81 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "agent_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "task_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Task Id"
+    },
+    "scope_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "title": "Scope Ids",
+      "type": "array"
+    },
+    "mode": {
+      "default": "exclusive_owner",
+      "enum": [
+        "exclusive_owner",
+        "collaborator",
+        "observer"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "intent": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Intent",
+      "type": "string"
+    },
+    "ttl_seconds": {
+      "default": 120,
+      "maximum": 600,
+      "minimum": 10,
+      "title": "Ttl Seconds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "project_id",
+    "agent_id",
+    "run_id",
+    "scope_ids",
+    "intent"
+  ],
+  "title": "ClaimCreate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

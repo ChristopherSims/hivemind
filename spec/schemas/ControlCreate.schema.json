@@ -1,0 +1,69 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "target_run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Target Run Id",
+      "type": "string"
+    },
+    "action": {
+      "enum": [
+        "steer",
+        "pause",
+        "resume",
+        "cancel",
+        "assign_task"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "replacement_task_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Replacement Task Id"
+    },
+    "target_run_revision": {
+      "minimum": 1,
+      "title": "Target Run Revision",
+      "type": "integer"
+    },
+    "coordinator_epoch": {
+      "minimum": 1,
+      "title": "Coordinator Epoch",
+      "type": "integer"
+    },
+    "reason": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "target_run_id",
+    "action",
+    "target_run_revision",
+    "coordinator_epoch",
+    "reason"
+  ],
+  "title": "ControlCreate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

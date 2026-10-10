@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "decision": {
+      "enum": [
+        "verified",
+        "needs_corrections",
+        "rejected"
+      ],
+      "title": "Decision",
+      "type": "string"
+    },
+    "reason": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "correction_items": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 16,
+      "title": "Correction Items",
+      "type": "array"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "decision",
+    "reason"
+  ],
+  "title": "ReviewDecision",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

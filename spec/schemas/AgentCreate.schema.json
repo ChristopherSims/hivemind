@@ -1,0 +1,74 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "display_name": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Display Name",
+      "type": "string"
+    },
+    "description": {
+      "default": "",
+      "maxLength": 4096,
+      "title": "Description",
+      "type": "string"
+    },
+    "runtime": {
+      "default": "generic",
+      "maxLength": 128,
+      "title": "Runtime",
+      "type": "string"
+    },
+    "capabilities": {
+      "anyOf": [
+        {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Capabilities"
+    },
+    "supported_actions": {
+      "default": [],
+      "items": {
+        "enum": [
+          "steer",
+          "pause",
+          "resume",
+          "cancel",
+          "assign_task"
+        ],
+        "type": "string"
+      },
+      "title": "Supported Actions",
+      "type": "array"
+    },
+    "scope_permit_enforcement": {
+      "default": false,
+      "title": "Scope Permit Enforcement",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "project_id",
+    "display_name"
+  ],
+  "title": "AgentCreate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

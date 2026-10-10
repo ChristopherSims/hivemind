@@ -1,0 +1,25 @@
+{
+  "additionalProperties": false,
+  "description": "Worker contract: the caller claims work for one of its own live runs.",
+  "properties": {
+    "agent_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "agent_id",
+    "run_id"
+  ],
+  "title": "TaskDispatch",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

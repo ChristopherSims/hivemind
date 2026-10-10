@@ -1,0 +1,139 @@
+{
+  "$defs": {
+    "ReportedTest": {
+      "additionalProperties": false,
+      "description": "Producer-reported test outcome. Never treated as objective proof.",
+      "properties": {
+        "name": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        }
+      },
+      "required": [
+        "name",
+        "outcome"
+      ],
+      "title": "ReportedTest",
+      "type": "object"
+    },
+    "VerificationEvidenceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "artifact",
+            "board_post"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ],
+      "title": "VerificationEvidenceRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "task_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "execution_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Execution Id",
+      "type": "string"
+    },
+    "completion_claimed": {
+      "title": "Completion Claimed",
+      "type": "boolean"
+    },
+    "summary": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "artifact_refs": {
+      "items": {
+        "$ref": "#/$defs/VerificationEvidenceRef"
+      },
+      "maxItems": 32,
+      "title": "Artifact Refs",
+      "type": "array"
+    },
+    "test_evidence": {
+      "items": {
+        "$ref": "#/$defs/ReportedTest"
+      },
+      "maxItems": 32,
+      "title": "Test Evidence",
+      "type": "array"
+    }
+  },
+  "required": [
+    "task_id",
+    "run_id",
+    "execution_id",
+    "completion_claimed",
+    "summary"
+  ],
+  "title": "VerificationSubmit",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

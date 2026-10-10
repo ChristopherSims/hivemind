@@ -1,0 +1,127 @@
+{
+  "$defs": {
+    "MemoryExtractionRef": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "board_post",
+            "artifact"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ],
+      "title": "MemoryExtractionRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "agent_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "requester_run_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Requester Run Id"
+    },
+    "source_refs": {
+      "items": {
+        "$ref": "#/$defs/MemoryExtractionRef"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "title": "Source Refs",
+      "type": "array"
+    },
+    "scope_kind": {
+      "default": "agent",
+      "enum": [
+        "run",
+        "agent",
+        "task",
+        "project"
+      ],
+      "title": "Scope Kind",
+      "type": "string"
+    },
+    "scope_owner_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Scope Owner Id"
+    },
+    "max_candidates": {
+      "default": 8,
+      "maximum": 16,
+      "minimum": 1,
+      "title": "Max Candidates",
+      "type": "integer"
+    },
+    "max_source_bytes": {
+      "default": 4096,
+      "maximum": 16384,
+      "minimum": 1,
+      "title": "Max Source Bytes",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "project_id",
+    "agent_id",
+    "source_refs"
+  ],
+  "title": "MemoryExtract",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

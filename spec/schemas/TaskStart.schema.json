@@ -1,0 +1,28 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "recover": {
+      "default": false,
+      "title": "Recover",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "run_id"
+  ],
+  "title": "TaskStart",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

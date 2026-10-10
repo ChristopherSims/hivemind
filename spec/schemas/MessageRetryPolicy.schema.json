@@ -1,0 +1,29 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "max_attempts": {
+      "default": 5,
+      "maximum": 20,
+      "minimum": 1,
+      "title": "Max Attempts",
+      "type": "integer"
+    },
+    "base_delay_seconds": {
+      "default": 2,
+      "maximum": 60,
+      "minimum": 1,
+      "title": "Base Delay Seconds",
+      "type": "integer"
+    },
+    "max_delay_seconds": {
+      "default": 60,
+      "maximum": 600,
+      "minimum": 1,
+      "title": "Max Delay Seconds",
+      "type": "integer"
+    }
+  },
+  "title": "MessageRetryPolicy",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

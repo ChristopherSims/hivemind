@@ -1,0 +1,133 @@
+{
+  "additionalProperties": false,
+  "description": "Result of one independent review run (or a recognized duplicate).",
+  "properties": {
+    "merge_request_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Merge Request Id",
+      "type": "string"
+    },
+    "reviewer_principal_id": {
+      "title": "Reviewer Principal Id",
+      "type": "string"
+    },
+    "reviewer_agent_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Reviewer Agent Id",
+      "type": "string"
+    },
+    "decision": {
+      "enum": [
+        "approve",
+        "reject"
+      ],
+      "title": "Decision",
+      "type": "string"
+    },
+    "already_reviewed": {
+      "default": false,
+      "title": "Already Reviewed",
+      "type": "boolean"
+    },
+    "review_run_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Review Run Id"
+    },
+    "review_task_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Review Task Id"
+    },
+    "review_execution_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Review Execution Id"
+    },
+    "source_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Source Oid",
+      "type": "string"
+    },
+    "target_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Target Oid",
+      "type": "string"
+    },
+    "candidate_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Candidate Oid",
+      "type": "string"
+    },
+    "snapshot": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Snapshot"
+    },
+    "snapshot_verified_unchanged": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Snapshot Verified Unchanged"
+    },
+    "receipts": {
+      "additionalProperties": true,
+      "title": "Receipts",
+      "type": "object"
+    }
+  },
+  "required": [
+    "merge_request_id",
+    "reviewer_principal_id",
+    "reviewer_agent_id",
+    "decision",
+    "source_oid",
+    "target_oid",
+    "candidate_oid"
+  ],
+  "title": "MergeReviewOutcome",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

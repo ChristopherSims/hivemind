@@ -1,0 +1,31 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "enum": [
+        "running",
+        "idle",
+        "waiting_input",
+        "blocked",
+        "paused",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "status",
+    "expected_revision"
+  ],
+  "title": "RunStatus",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

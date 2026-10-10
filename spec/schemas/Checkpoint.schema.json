@@ -1,0 +1,17 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "checkpoint_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Checkpoint Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "checkpoint_id"
+  ],
+  "title": "Checkpoint",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

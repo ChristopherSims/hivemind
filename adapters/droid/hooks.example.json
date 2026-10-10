@@ -1,0 +1,5 @@
+{
+  "SessionStart": [{"hooks": [{"type": "command", "command": "\"ABSOLUTE_VENV_PYTHON\" -m hivemind.hooks --config \"ABSOLUTE_PRIVATE_CONFIG\"", "timeout": 20}]}],
+  "PreToolUse": [{"matcher": "*", "hooks": [{"type": "command", "command": "\"ABSOLUTE_VENV_PYTHON\" -m hivemind.hooks --config \"ABSOLUTE_PRIVATE_CONFIG\"", "timeout": 20}]}],
+  "PostToolUse": [{"matcher": "*", "hooks": [{"type": "command", "command": "\"ABSOLUTE_VENV_PYTHON\" -m hivemind.hooks --config \"ABSOLUTE_PRIVATE_CONFIG\"", "timeout": 20}]}]
+}

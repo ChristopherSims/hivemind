@@ -1,0 +1,1 @@
+.\.venv\Scripts\python.exe -m scripts.factory_integration --live --auto high

@@ -1,0 +1,44 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "target_agent_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Target Agent Id",
+      "type": "string"
+    },
+    "target_run_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Target Run Id"
+    },
+    "reason": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "target_agent_id",
+    "reason"
+  ],
+  "title": "TaskHandoff",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

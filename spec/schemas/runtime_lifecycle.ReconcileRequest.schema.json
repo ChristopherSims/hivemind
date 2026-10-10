@@ -1,0 +1,87 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "agent_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "targets": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Targets",
+      "type": "array"
+    },
+    "workspace_root": {
+      "anyOf": [
+        {
+          "maxLength": 4096,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Workspace Root"
+    },
+    "adapter_state_file": {
+      "anyOf": [
+        {
+          "maxLength": 4096,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Adapter State File"
+    },
+    "scan": {
+      "default": false,
+      "title": "Scan",
+      "type": "boolean"
+    },
+    "enabled": {
+      "default": true,
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "terminal": {
+      "default": false,
+      "title": "Terminal",
+      "type": "boolean"
+    },
+    "update_baseline": {
+      "default": false,
+      "title": "Update Baseline",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "project_id",
+    "agent_id",
+    "run_id"
+  ],
+  "title": "ReconcileRequest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

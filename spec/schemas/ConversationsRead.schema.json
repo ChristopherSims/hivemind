@@ -1,0 +1,22 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "message_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Message Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "message_ids"
+  ],
+  "title": "ConversationsRead",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,23 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "reason": {
+      "maxLength": 65536,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "dropped_observation_count": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Dropped Observation Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "reason"
+  ],
+  "title": "GapData",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

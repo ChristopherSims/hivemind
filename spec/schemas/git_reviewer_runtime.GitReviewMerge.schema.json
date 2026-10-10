@@ -1,0 +1,42 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "merge_request_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Merge Request Id",
+      "type": "string"
+    },
+    "reviewer_principal_id": {
+      "title": "Reviewer Principal Id",
+      "type": "string"
+    },
+    "reviewer_agent_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Reviewer Agent Id",
+      "type": "string"
+    },
+    "expected_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Revision"
+    }
+  },
+  "required": [
+    "merge_request_id",
+    "reviewer_principal_id",
+    "reviewer_agent_id"
+  ],
+  "title": "GitReviewMerge",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

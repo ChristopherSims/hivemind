@@ -1,0 +1,34 @@
+{
+  "additionalProperties": false,
+  "description": "Explicit recovery for terminal or stale scheduling state; never automatic.",
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "action": {
+      "enum": [
+        "requeue",
+        "reassign",
+        "escalate"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "reason": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "action",
+    "reason"
+  ],
+  "title": "TaskReconcile",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

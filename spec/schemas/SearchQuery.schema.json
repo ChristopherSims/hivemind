@@ -1,0 +1,70 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "query": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Query",
+      "type": "string"
+    },
+    "mode": {
+      "default": "hybrid",
+      "enum": [
+        "lexical",
+        "semantic",
+        "hybrid"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "limit": {
+      "default": 10,
+      "maximum": 50,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    },
+    "resource_kinds": {
+      "default": [],
+      "items": {
+        "enum": [
+          "agent",
+          "board_post",
+          "memory",
+          "task",
+          "work_claim",
+          "artifact"
+        ],
+        "type": "string"
+      },
+      "title": "Resource Kinds",
+      "type": "array"
+    },
+    "min_ingestion_seq": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Min Ingestion Seq"
+    }
+  },
+  "required": [
+    "project_id",
+    "query"
+  ],
+  "title": "SearchQuery",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

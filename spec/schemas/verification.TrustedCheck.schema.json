@@ -1,0 +1,31 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "check_name": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Check Name",
+      "type": "string"
+    },
+    "artifact_paths": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 16,
+      "title": "Artifact Paths",
+      "type": "array"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "check_name"
+  ],
+  "title": "TrustedCheck",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

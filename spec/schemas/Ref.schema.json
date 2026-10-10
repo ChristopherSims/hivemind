@@ -1,0 +1,49 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "enum": [
+        "agent",
+        "run",
+        "task",
+        "event",
+        "artifact",
+        "board_post",
+        "memory",
+        "scope",
+        "work_claim",
+        "conflict",
+        "control",
+        "decision"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Revision"
+    }
+  },
+  "required": [
+    "kind",
+    "id"
+  ],
+  "title": "Ref",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

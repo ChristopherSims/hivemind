@@ -1,0 +1,17 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "text": {
+      "maxLength": 65536,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "text"
+  ],
+  "title": "StatusData",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,220 @@
+{
+  "$defs": {
+    "Selector": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 50,
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agent Ids"
+        },
+        "semantic_query": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "minLength": 1,
+              "type": "string",
+              "pattern": "\\S"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Semantic Query"
+        },
+        "match": {
+          "default": "union",
+          "enum": [
+            "union",
+            "intersection"
+          ],
+          "title": "Match",
+          "type": "string"
+        },
+        "active_only": {
+          "default": true,
+          "title": "Active Only",
+          "type": "boolean"
+        },
+        "max_agents": {
+          "default": 10,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Max Agents",
+          "type": "integer"
+        }
+      },
+      "title": "Selector",
+      "type": "object",
+      "anyOf": [
+        {
+          "required": [
+            "agent_ids"
+          ],
+          "properties": {
+            "agent_ids": {
+              "type": "array",
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "required": [
+            "semantic_query"
+          ],
+          "properties": {
+            "semantic_query": {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          }
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "match": {
+                "const": "intersection"
+              }
+            },
+            "required": [
+              "match"
+            ]
+          },
+          "then": {
+            "required": [
+              "agent_ids",
+              "semantic_query"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "agent_selector": {
+      "$ref": "#/$defs/Selector"
+    },
+    "query": {
+      "default": "",
+      "maxLength": 4096,
+      "title": "Query",
+      "type": "string"
+    },
+    "token_budget": {
+      "default": 6000,
+      "maximum": 32000,
+      "minimum": 100,
+      "title": "Token Budget",
+      "type": "integer"
+    },
+    "require_verified_memory": {
+      "default": true,
+      "title": "Require Verified Memory",
+      "type": "boolean"
+    },
+    "include": {
+      "items": {
+        "enum": [
+          "ledger",
+          "work_claims",
+          "tasks",
+          "board",
+          "memory",
+          "artifacts",
+          "graph",
+          "messages",
+          "controls"
+        ],
+        "type": "string"
+      },
+      "title": "Include",
+      "type": "array"
+    },
+    "requester_run_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Requester Run Id"
+    },
+    "target_tokenizer": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Target Tokenizer"
+    },
+    "min_ingestion_seq": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Min Ingestion Seq"
+    },
+    "graph_max_hops": {
+      "default": 2,
+      "maximum": 3,
+      "minimum": 1,
+      "title": "Graph Max Hops",
+      "type": "integer"
+    },
+    "timeout_ms": {
+      "default": 5000,
+      "maximum": 10000,
+      "minimum": 0,
+      "title": "Timeout Ms",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "project_id",
+    "agent_selector"
+  ],
+  "title": "ContextQuery",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,31 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "requested_ttl_seconds": {
+      "default": 60,
+      "maximum": 120,
+      "minimum": 10,
+      "title": "Requested Ttl Seconds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "agent_id",
+    "run_id"
+  ],
+  "title": "NexusRequest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

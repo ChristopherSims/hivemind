@@ -1,0 +1,50 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "seed_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 20,
+      "minItems": 1,
+      "title": "Seed Ids",
+      "type": "array"
+    },
+    "max_hops": {
+      "default": 2,
+      "maximum": 3,
+      "minimum": 1,
+      "title": "Max Hops",
+      "type": "integer"
+    },
+    "max_nodes": {
+      "default": 100,
+      "maximum": 100,
+      "minimum": 1,
+      "title": "Max Nodes",
+      "type": "integer"
+    },
+    "max_edges": {
+      "default": 200,
+      "maximum": 200,
+      "minimum": 1,
+      "title": "Max Edges",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "project_id",
+    "seed_ids"
+  ],
+  "title": "GraphQuery",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,23 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "check_name": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Check Name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "check_name"
+  ],
+  "title": "MergeRequestCheck",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

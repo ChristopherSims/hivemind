@@ -1,0 +1,54 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "source_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Source Oid",
+      "type": "string"
+    },
+    "target_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Target Oid",
+      "type": "string"
+    },
+    "candidate_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Candidate Oid",
+      "type": "string"
+    },
+    "coordinator_epoch": {
+      "minimum": 1,
+      "title": "Coordinator Epoch",
+      "type": "integer"
+    },
+    "lease_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Lease Id",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "source_oid",
+    "target_oid",
+    "candidate_oid",
+    "coordinator_epoch",
+    "lease_id",
+    "run_id"
+  ],
+  "title": "MergeRequestMerge",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

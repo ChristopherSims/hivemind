@@ -1,0 +1,43 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "task_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "execution_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Execution Id",
+      "type": "string"
+    },
+    "source_oid": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Source Oid",
+      "type": "string"
+    },
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "task_id",
+    "run_id",
+    "execution_id",
+    "source_oid",
+    "expected_revision"
+  ],
+  "title": "GitWorkspaceReconcile",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

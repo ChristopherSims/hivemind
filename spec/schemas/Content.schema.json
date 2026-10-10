@@ -1,0 +1,174 @@
+{
+  "$defs": {
+    "Segment": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "text",
+            "agent_mention"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "maxLength": 65536,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        },
+        "agent_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agent Id"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "Segment",
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "text"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "text"
+            ],
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "agent_id": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "required": [
+              "agent_id"
+            ],
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              },
+              "text": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "media_type": {
+      "enum": [
+        "text/plain",
+        "text/markdown",
+        "application/vnd.hivemind.chat+json"
+      ],
+      "title": "Media Type",
+      "type": "string"
+    },
+    "text": {
+      "anyOf": [
+        {
+          "maxLength": 65536,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Text"
+    },
+    "segments": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/Segment"
+          },
+          "maxItems": 128,
+          "minItems": 1,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Segments"
+    }
+  },
+  "required": [
+    "media_type"
+  ],
+  "title": "Content",
+  "type": "object",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "media_type": {
+            "const": "application/vnd.hivemind.chat+json"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "segments"
+        ],
+        "properties": {
+          "text": {
+            "type": "null"
+          },
+          "segments": {
+            "type": "array"
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "segments": {
+            "type": "null"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

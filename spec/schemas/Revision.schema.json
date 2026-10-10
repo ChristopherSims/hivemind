@@ -1,0 +1,16 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "expected_revision"
+  ],
+  "title": "Revision",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

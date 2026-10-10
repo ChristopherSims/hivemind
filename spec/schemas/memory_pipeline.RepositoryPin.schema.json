@@ -1,0 +1,48 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "repository_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Repository Id"
+    },
+    "branch": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Branch"
+    },
+    "observed_commit": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Observed Commit"
+    }
+  },
+  "title": "RepositoryPin",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

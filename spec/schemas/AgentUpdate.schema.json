@@ -1,0 +1,29 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "display_name": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Display Name",
+      "type": "string"
+    },
+    "description": {
+      "default": "",
+      "maxLength": 4096,
+      "title": "Description",
+      "type": "string"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "display_name"
+  ],
+  "title": "AgentUpdate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

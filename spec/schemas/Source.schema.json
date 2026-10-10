@@ -1,0 +1,44 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "source_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Source Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "runtime_hook",
+        "tool_wrapper",
+        "filesystem",
+        "sdk"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "sequence": {
+      "minimum": 0,
+      "title": "Sequence",
+      "type": "integer"
+    },
+    "attribution": {
+      "default": "reported",
+      "enum": [
+        "confirmed",
+        "reported",
+        "unattributed"
+      ],
+      "title": "Attribution",
+      "type": "string"
+    }
+  },
+  "required": [
+    "source_id",
+    "kind",
+    "sequence"
+  ],
+  "title": "Source",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

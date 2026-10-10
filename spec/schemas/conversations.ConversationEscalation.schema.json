@@ -1,0 +1,37 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "reason": {
+      "default": "response deadline exceeded",
+      "maxLength": 1024,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "escalate_to": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Escalate To"
+    }
+  },
+  "required": [
+    "expected_revision"
+  ],
+  "title": "ConversationEscalation",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

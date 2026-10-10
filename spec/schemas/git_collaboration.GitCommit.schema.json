@@ -1,0 +1,54 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "task_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "execution_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Execution Id",
+      "type": "string"
+    },
+    "message": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Message",
+      "type": "string"
+    },
+    "paths": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 64,
+      "minItems": 1,
+      "title": "Paths",
+      "type": "array"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "task_id",
+    "run_id",
+    "execution_id",
+    "message",
+    "paths"
+  ],
+  "title": "GitCommit",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

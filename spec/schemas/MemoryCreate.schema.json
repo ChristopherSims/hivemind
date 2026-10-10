@@ -1,0 +1,386 @@
+{
+  "$defs": {
+    "Content": {
+      "additionalProperties": false,
+      "properties": {
+        "media_type": {
+          "enum": [
+            "text/plain",
+            "text/markdown",
+            "application/vnd.hivemind.chat+json"
+          ],
+          "title": "Media Type",
+          "type": "string"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "maxLength": 65536,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        },
+        "segments": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Segment"
+              },
+              "maxItems": 128,
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Segments"
+        }
+      },
+      "required": [
+        "media_type"
+      ],
+      "title": "Content",
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "media_type": {
+                "const": "application/vnd.hivemind.chat+json"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "segments"
+            ],
+            "properties": {
+              "text": {
+                "type": "null"
+              },
+              "segments": {
+                "type": "array"
+              }
+            }
+          },
+          "else": {
+            "required": [
+              "text"
+            ],
+            "properties": {
+              "segments": {
+                "type": "null"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "MemoryValidity": {
+      "additionalProperties": false,
+      "properties": {
+        "valid_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_until": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Until"
+        },
+        "repository_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Repository Id"
+        },
+        "branch": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Branch"
+        },
+        "observed_commit": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed Commit"
+        }
+      },
+      "title": "MemoryValidity",
+      "type": "object"
+    },
+    "Ref": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "agent",
+            "run",
+            "task",
+            "event",
+            "artifact",
+            "board_post",
+            "memory",
+            "scope",
+            "work_claim",
+            "conflict",
+            "control",
+            "decision"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ],
+      "title": "Ref",
+      "type": "object"
+    },
+    "Segment": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "text",
+            "agent_mention"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "maxLength": 65536,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        },
+        "agent_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agent Id"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "Segment",
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "text"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "text"
+            ],
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "agent_id": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "required": [
+              "agent_id"
+            ],
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              },
+              "text": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "title": {
+      "maxLength": 512,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "content": {
+      "$ref": "#/$defs/Content"
+    },
+    "evidence_refs": {
+      "items": {
+        "$ref": "#/$defs/Ref"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "validity": {
+      "$ref": "#/$defs/MemoryValidity"
+    },
+    "expires_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expires At"
+    },
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "category": {
+      "default": "semantic",
+      "enum": [
+        "working",
+        "episodic",
+        "semantic",
+        "procedural",
+        "preference"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "scope_kind": {
+      "default": "project",
+      "enum": [
+        "run",
+        "agent",
+        "task",
+        "project"
+      ],
+      "title": "Scope Kind",
+      "type": "string"
+    },
+    "scope_owner_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Scope Owner Id",
+      "type": "string"
+    },
+    "private": {
+      "default": false,
+      "title": "Private",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "title",
+    "content",
+    "evidence_refs",
+    "project_id",
+    "scope_owner_id"
+  ],
+  "title": "MemoryCreate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,53 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "canonical_key": {
+      "maxLength": 512,
+      "minLength": 1,
+      "title": "Canonical Key",
+      "type": "string"
+    },
+    "display_name": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Display Name",
+      "type": "string"
+    },
+    "parent_scope_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Scope Id"
+    },
+    "allowed_paths": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "Allowed Paths",
+      "type": "array"
+    }
+  },
+  "required": [
+    "project_id",
+    "canonical_key",
+    "display_name"
+  ],
+  "title": "ScopeCreate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

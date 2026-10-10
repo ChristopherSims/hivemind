@@ -1,0 +1,24 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "limit": {
+      "default": 4,
+      "maximum": 16,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "project_id"
+  ],
+  "title": "ReviewTick",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

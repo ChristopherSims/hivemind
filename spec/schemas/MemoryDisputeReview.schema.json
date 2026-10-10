@@ -1,0 +1,46 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "left_expected_revision": {
+      "minimum": 1,
+      "title": "Left Expected Revision",
+      "type": "integer"
+    },
+    "right_expected_revision": {
+      "minimum": 1,
+      "title": "Right Expected Revision",
+      "type": "integer"
+    },
+    "decision": {
+      "enum": [
+        "confirm",
+        "dismiss",
+        "prefer_left",
+        "prefer_right"
+      ],
+      "title": "Decision",
+      "type": "string"
+    },
+    "reason": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "left_expected_revision",
+    "right_expected_revision",
+    "decision",
+    "reason"
+  ],
+  "title": "MemoryDisputeReview",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

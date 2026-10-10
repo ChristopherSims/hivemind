@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "description": "Producer-reported test outcome. Never treated as objective proof.",
+  "properties": {
+    "name": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "outcome": {
+      "enum": [
+        "pass",
+        "fail",
+        "unknown"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "detail": {
+      "anyOf": [
+        {
+          "maxLength": 4096,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Detail"
+    }
+  },
+  "required": [
+    "name",
+    "outcome"
+  ],
+  "title": "ReportedTest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

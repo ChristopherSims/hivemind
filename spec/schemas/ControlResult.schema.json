@@ -1,0 +1,52 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "outcome": {
+      "enum": [
+        "applied",
+        "failed",
+        "outcome_unknown"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "checkpoint_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Checkpoint Id"
+    },
+    "observed_status": {
+      "anyOf": [
+        {
+          "enum": [
+            "running",
+            "idle",
+            "paused",
+            "cancelled"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Observed Status"
+    }
+  },
+  "required": [
+    "outcome"
+  ],
+  "title": "ControlResult",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

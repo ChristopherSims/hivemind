@@ -1,0 +1,8 @@
+{
+  "additionalProperties": false,
+  "description": "Empty body placeholder for commands that take no payload.",
+  "properties": {},
+  "title": "_Empty",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,22 @@
+{
+  "additionalProperties": false,
+  "description": "Optional revision fence for a reconcile scan; omitted means scan without writing.",
+  "properties": {
+    "expected_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Revision"
+    }
+  },
+  "title": "ConversationReconcile",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
