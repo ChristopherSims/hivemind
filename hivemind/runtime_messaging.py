@@ -436,7 +436,7 @@ class VendorMessagingExecutor:
     """Real runtime-backed message handling via the existing ``runtime.execute`` surface.
 
     Each authorized message becomes a **real canonical task**: created through
-    ``POST /v0.1/tasks``, started through ``tasks/{id}:start`` under this executor's real
+    ``POST /v1/tasks``, started through ``tasks/{id}:start`` under this executor's real
     run, and settled through ``tasks/{id}:checkpoint`` only after a confirmed model
     decision and reply. Task and execution IDs are always the server-returned records
     (what managed hooks look up in the store), never deterministic pseudo-IDs. Creation
@@ -482,7 +482,8 @@ class VendorMessagingExecutor:
     def __init__(self, client, project_id, agent_id, run_id, *,
                  runtime=None, runtime_factory=None, handler_journal=None,
                  allowed_senders=(), allowed_notification_types=(), allow_replies=False,
-                 max_reply_chars=MAX_REPLY_CHARS, allow_tool_mutation=False):
+                 max_reply_chars=MAX_REPLY_CHARS, allow_tool_mutation=False,
+                 effect_gate=None):
         if (runtime is None) == (runtime_factory is None):
             raise ValueError("Provide exactly one of runtime or runtime_factory")
         if not run_id:
@@ -496,6 +497,15 @@ class VendorMessagingExecutor:
         self._cached_runtime = runtime
         self.runtime_factory = runtime_factory
         self.handler_journal = handler_journal
+        # Optional gate invoked with (item, contract) at every effect boundary: after
+        # the confirmed turn decision is journaled (before the effect phase begins),
+        # immediately before the deterministic reply is posted, and immediately before
+        # the canonical task settles. Raising MessagingError blocks definitely; before
+        # any effect it leaves no/pending journal record so a later redelivery resumes
+        # cleanly, while a refusal after the reply is an honest UnknownOutcome for the
+        # reconciler. Any non-MessagingError exception becomes UnknownOutcome (no ack).
+        # Used by the assigned-run concurrency supervisor and by recovery tooling.
+        self.effect_gate = effect_gate if callable(effect_gate) else None
         self.allowed_senders = frozenset(allowed_senders or ())
         self.allowed_notification_types = frozenset(allowed_notification_types or ())
         if self.allowed_notification_types:
@@ -597,6 +607,12 @@ class VendorMessagingExecutor:
             contract = self._phase(journal, kinds[1], item,
                                    lambda: self._vendor_turn(item, task_ref, subject,
                                                              allow_reply=reply_to is not None))
+            # Definite block before the effect phase. Skipped when the effect already
+            # completed (a deduplicated redelivery replays no effects, so fencing it
+            # would only break restart/recovery replays).
+            effect = journal.operation(self._operation_id(kinds[2], item))
+            if effect is None or effect["state"] != "completed":
+                self._run_effect_gate(item, contract)
             value = self._phase(journal, kinds[2], item,
                                 lambda: self._apply_effect(item, contract, task_ref,
                                                            reply_to, subject["label"]))
@@ -636,6 +652,13 @@ class VendorMessagingExecutor:
         journal.mark_attempt(operation_id)
         try:
             result = work()
+        except MessagingError:
+            # Definite refusal before any provable effect (authorization, stale
+            # fencing, or an effect gate fired before the reply/settle): reopen the
+            # record as pending so a later redelivery resumes this phase cleanly —
+            # never poisoned unknown, and the delivery is failed, never acked.
+            journal.resolve_operation(operation_id, "pending")
+            raise
         except Exception as error:
             journal.fail_operation(operation_id, error)
             if self._definite(error):
@@ -644,6 +667,23 @@ class VendorMessagingExecutor:
                 "Handler effects need explicit reconciliation") from None
         record = journal.complete_operation(operation_id, result)
         return dict(record["result"] or {})
+
+    def _run_effect_gate(self, item, contract):
+        """Invoke the configured effect gate, if any, at one effect boundary.
+
+        A :class:`MessagingError` is a definite refusal (no ack, safe retry semantics
+        decided by the caller); anything else is an uncertain gate outcome and becomes
+        :class:`UnknownOutcome` so the delivery is never acked.
+        """
+        if self.effect_gate is None:
+            return
+        try:
+            self.effect_gate(item, contract)
+        except MessagingError:
+            raise
+        except Exception:
+            raise UnknownOutcome(
+                "Effect gate outcome is uncertain; reconcile before any ack") from None
 
     @staticmethod
     def _definite(error):
@@ -770,12 +810,26 @@ class VendorMessagingExecutor:
             value.update(replied=False, reply_message_id=None)
             if contract["handled"] is True and contract.get("reply_text"):
                 if self.allow_replies:
+                    # Fence immediately before the reply; a definite refusal here means
+                    # no effect ran, so the phase record stays cleanly retryable.
+                    self._run_effect_gate(item, contract)
                     value["reply_message_id"] = post_reply(
                         self.client, self.project_id, self.agent_id, self.run_id, reply_to,
                         contract["reply_text"])["id"]
                     value["replied"] = True
                 else:
                     value["reply_not_permitted"] = True
+        try:
+            # Fence immediately before settlement as well.
+            self._run_effect_gate(item, contract)
+        except MessagingError:
+            if value.get("replied"):
+                # The reply is already on the wire, so a settle refusal is genuinely
+                # uncertain: record an honest unknown for the reconciler, never ack.
+                raise UnknownOutcome(
+                    "Reply applied but settlement was fenced; reconcile "
+                    "explicitly") from None
+            raise
         value["settled"] = self._settle(task_ref, contract, item, label)
         return value
 

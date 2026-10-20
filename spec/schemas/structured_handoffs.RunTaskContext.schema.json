@@ -1,0 +1,38 @@
+{
+  "additionalProperties": false,
+  "description": "Worker consumption fence: the exact current run, task, execution, revision.",
+  "properties": {
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "task_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "execution_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Execution Id",
+      "type": "string"
+    },
+    "expected_task_revision": {
+      "minimum": 1,
+      "title": "Expected Task Revision",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "run_id",
+    "task_id",
+    "execution_id",
+    "expected_task_revision"
+  ],
+  "title": "RunTaskContext",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

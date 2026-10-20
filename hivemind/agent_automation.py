@@ -24,7 +24,7 @@ class NexusReviewerBridge:
 
 
 def install(app, service, principal, command, envelope, nexus_policy=None, nexus_runtime=None,
-            isolation_policy=None):
+            isolation_policy=None, isolation_guard=None):
     from .capabilities import replace_routes
     from .nexus_git_automation import NexusGitAutomation
     replace_routes(app, __name__)
@@ -35,20 +35,29 @@ def install(app, service, principal, command, envelope, nexus_policy=None, nexus
     from .os_isolation import IsolationPolicy, IsolationRefused, plan
     isolation = plan(isolation_policy or IsolationPolicy())
     if isolation.policy.required and any(item.status == "external" for item in isolation.decisions):
-        raise IsolationRefused("Required identity/ACL controls lack automatic attestation")
+        if isolation_guard is None:
+            raise IsolationRefused("Required identity/ACL controls lack automatic attestation")
+    if isolation_guard is not None:
+        isolation_guard.bind_resources(service.store.directory, app.state.git_collaboration.root)
+        app.state.git_collaboration.isolation_guard = isolation_guard
     app.state.os_isolation = isolation
+    app.state.os_isolation_guard = isolation_guard
 
     from fastapi import Depends
 
-    @app.get("/v0.1/projects/{project_id}/git-automation")
+    @app.get("/v1/projects/{project_id}/git-automation")
     async def status(project_id: str, p=Depends(principal)):
         service.project_access(p, project_id)
         automation = app.state.nexus_git_automation
         policy = automation.policy
-        return envelope({
+        value = {
             "enabled": policy.enabled is True and policy.project_id == project_id,
             "review_runtime_configured": automation.runtime is not None,
             "last_error": getattr(app.state, "nexus_git_automation_error", None),
             "isolation_mode": isolation.policy.mode,
             "isolation_controls": {item.name: item.status for item in isolation.decisions},
-        })
+        }
+        if isolation_guard:
+            isolation_guard.check()
+            value["isolation_attested"] = True
+        return envelope(value)

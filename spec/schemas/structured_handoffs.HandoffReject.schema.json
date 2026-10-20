@@ -1,0 +1,23 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "reason": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "reason"
+  ],
+  "title": "HandoffReject",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

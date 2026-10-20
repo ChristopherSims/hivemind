@@ -1,0 +1,103 @@
+{
+  "$defs": {
+    "Ref": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "agent",
+            "run",
+            "task",
+            "event",
+            "artifact",
+            "board_post",
+            "memory",
+            "scope",
+            "work_claim",
+            "conflict",
+            "control",
+            "decision"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ],
+      "title": "Ref",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "result_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Result Id",
+      "type": "string"
+    },
+    "item_index": {
+      "maximum": 19,
+      "minimum": 0,
+      "title": "Item Index",
+      "type": "integer"
+    },
+    "content_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Content Sha256",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 512,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "approve_import": {
+      "const": true,
+      "title": "Approve Import",
+      "type": "boolean"
+    },
+    "evidence_refs": {
+      "items": {
+        "$ref": "#/$defs/Ref"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "title": "Evidence Refs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "result_id",
+    "item_index",
+    "content_sha256",
+    "title",
+    "approve_import",
+    "evidence_refs"
+  ],
+  "title": "ProviderImport",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

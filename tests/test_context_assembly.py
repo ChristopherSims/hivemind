@@ -245,6 +245,31 @@ def test_compaction_truncates_oversized_content_within_budget(world):
     assert item["token_count"] <= 2048
 
 
+def test_scan_metadata_excludes_hidden_rows(world):
+    """Private rows are filtered in SQL before counting: assembly scan metadata must be
+    identical whether or not a hidden corpus exists."""
+    store = world.app.state.store
+    owner_agent = world.agent("Scan owner")
+    other_agent = world.agent("Hidden owner")
+    run = world.run(owner_agent)
+    principal = principal_for(world, world.credential(owner_agent))
+    for index in range(3):
+        put(store, "memory", world.project, principal["id"], memory_body(
+            world.project, run, title=f"Open {index}", text=f"open memory {index}"))
+
+    request = request_for(world, owner_agent["id"], include=["memory"], budget=32000)
+    before = ca.assemble(world.app.state.service, principal, request, counter=char_counter)
+
+    for index in range(20):
+        put(store, "memory", world.project, principal["id"], memory_body(
+            world.project, run, title=f"Hidden {index}", text=f"hidden memory {index}"),
+            private=other_agent["id"])
+    after = ca.assemble(world.app.state.service, principal, request, counter=char_counter)
+    assert after["scan"]["scanned"] == before["scan"]["scanned"]
+    assert after["scan"]["scan_truncated"] == before["scan"]["scan_truncated"]
+    assert item_ids(after) == item_ids(before)
+
+
 def test_install_registers_endpoint_with_validation_and_envelope(world):
     store = world.app.state.store
     agent = world.agent("Endpoint worker")
@@ -274,8 +299,8 @@ def test_install_registers_endpoint_with_validation_and_envelope(world):
         "token_budget": 4000,
         "include": ["memory", "work_claims", "tasks"],
     }
-    assert client.post("/v0.1/context:assemble", json=body).status_code == 401
-    response = client.post("/v0.1/context:assemble", json=body,
+    assert client.post("/v1/context:assemble", json=body).status_code == 401
+    response = client.post("/v1/context:assemble", json=body,
                            headers={"Authorization": "Bearer " + world.owner})
     assert response.status_code == 200
     payload = response.json()
@@ -286,6 +311,6 @@ def test_install_registers_endpoint_with_validation_and_envelope(world):
     assert packet["token_count"] <= packet["token_budget"]
     assert packet["evidence_notice"] == ca.EVIDENCE_NOTICE
     assert packet["tokenization"]["covers"].startswith("full response envelope")
-    bad = client.post("/v0.1/context:assemble", json={"project_id": world.project},
+    bad = client.post("/v1/context:assemble", json={"project_id": world.project},
                       headers={"Authorization": "Bearer " + world.owner})
     assert bad.status_code == 422

@@ -1,17 +1,55 @@
 import type {ExtensionAPI} from "@oh-my-pi/pi-coding-agent";
+import type {CustomToolContext} from "@oh-my-pi/pi-coding-agent/extensibility/custom-tools/types";
 import {spawn} from "node:child_process";
-import {readFileSync} from "node:fs";
+import {closeSync, openSync, readFileSync, renameSync, writeFileSync} from "node:fs";
 
 /**
  * Explicitly loaded with `omp --extension <absolute-path>`.
  * Set HIVEMIND_CONFIG to a private JSON configuration and HIVEMIND_PYTHON to the venv Python.
  * This bridge never bypasses the host's ordinary approvals.
  */
-export default function hivemind(pi: ExtensionAPI) {
+export default async function hivemind(pi: ExtensionAPI) {
   const config = process.env.HIVEMIND_CONFIG;
   const python = process.env.HIVEMIND_PYTHON;
   if (!config || !python) throw new Error("Set HIVEMIND_CONFIG and HIVEMIND_PYTHON");
   const settings = JSON.parse(readFileSync(config, "utf8"));
+  const binding = settings.worker_mcp;
+  if (binding?.enabled === true && binding.host_owned !== true) {
+    const {MCPManager} = await import("@oh-my-pi/pi-coding-agent/mcp");
+    // An isolated manager, never discover(): no ambient project/user MCP commands.
+    const manager = new MCPManager(process.cwd());
+    try {
+      await manager.connectServers({hivemind: {
+        command: python, args: ["-m", "hivemind.worker_mcp"],
+        env: {HIVEMIND_CONFIG: config},
+      }}, {}, undefined, 20000);
+      const tools = manager.getTools();
+      if (tools.length !== binding.tools.length ||
+          [...tools.map(tool => tool.name)].sort().join("\0") !==
+          [...binding.tools].sort().join("\0")) {
+        throw new Error("Worker MCP connection or catalog not verified");
+      }
+      for (const tool of tools) {
+        pi.registerTool({
+          name: tool.name, label: tool.label, description: tool.description,
+          parameters: tool.parameters,
+          execute: (id, params, signal, update, ctx) =>
+            tool.execute(id, params, update, ctx as unknown as CustomToolContext, signal),
+        });
+      }
+      pi.on("session_shutdown", async () => { await manager.disconnectAll(); });
+      const temporary = `${binding.ready_file}.${binding.nonce}.tmp`;
+      const fd = openSync(temporary, "wx", 0o600);
+      try {
+        writeFileSync(fd, JSON.stringify({nonce: binding.nonce, connected: true,
+          server: "hivemind", tools: binding.tools}));
+      } finally { closeSync(fd); }
+      renameSync(temporary, binding.ready_file);
+    } catch {
+      await manager.disconnectAll();
+      throw new Error("Hivemind worker MCP registration failed");
+    }
+  }
 
   async function bridge(payload: unknown): Promise<{additionalContext?: string}> {
     return await new Promise<{additionalContext?: string}>((resolve, reject) => {

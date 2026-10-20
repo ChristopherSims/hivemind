@@ -1,0 +1,28 @@
+{
+  "additionalProperties": false,
+  "description": "Advisory routing query. A query grant is never dispatch authority.",
+  "properties": {
+    "task_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "candidate_agent_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "Candidate Agent Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "task_id"
+  ],
+  "title": "RoutingQuery",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

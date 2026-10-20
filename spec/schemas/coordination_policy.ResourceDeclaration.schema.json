@@ -1,0 +1,49 @@
+{
+  "additionalProperties": false,
+  "description": "Explicit effect declaration for one task, scoped to the task's project.\n\n``reads``/``writes`` hold normalized ``scope:``, ``path:``, ``artifact:``,\n``dependency:``, or ``interface:`` keys. Keys referencing real resources are\nauthorized at declaration time. ``interfaces``/``dependencies`` are treated as\nshared writes for conflict purposes. A key may not be both read and written.\nDeclarations freeze while an execution exists for the task.",
+  "properties": {
+    "expected_task_revision": {
+      "minimum": 1,
+      "title": "Expected Task Revision",
+      "type": "integer"
+    },
+    "reads": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "Reads",
+      "type": "array"
+    },
+    "writes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "Writes",
+      "type": "array"
+    },
+    "interfaces": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 32,
+      "title": "Interfaces",
+      "type": "array"
+    },
+    "dependencies": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 32,
+      "title": "Dependencies",
+      "type": "array"
+    }
+  },
+  "required": [
+    "expected_task_revision"
+  ],
+  "title": "ResourceDeclaration",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

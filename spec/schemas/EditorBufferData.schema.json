@@ -1,0 +1,48 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "path": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Path",
+      "type": "string",
+      "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*[:\\u0000]).+$"
+    },
+    "observation": {
+      "enum": [
+        "opened",
+        "changed",
+        "saved",
+        "closed"
+      ],
+      "title": "Observation",
+      "type": "string"
+    },
+    "sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Sha256",
+      "type": "string"
+    },
+    "byte_size": {
+      "maximum": 1048576,
+      "minimum": 0,
+      "title": "Byte Size",
+      "type": "integer"
+    },
+    "version": {
+      "minimum": 0,
+      "title": "Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "path",
+    "observation",
+    "sha256",
+    "byte_size",
+    "version"
+  ],
+  "title": "EditorBufferData",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

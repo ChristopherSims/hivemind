@@ -1,0 +1,31 @@
+{
+  "version": "hivemind-repository-retrieval-v1",
+  "label_policy": "Frozen assistant-authored judgments over actual source functions, before measuring model results. Grade 2 directly answers, grade 1 supports. Unlisted functions treated as nonrelevant; judgments need independent review. No private data or fabricated document prose.",
+  "max_documents": 64,
+  "max_lines": 96,
+  "sources": [
+    "hivemind/storage.py", "hivemind/indexes.py", "hivemind/sdk.py",
+    "hivemind/vendor_recovery.py", "hivemind/control_capture.py",
+    "hivemind/context_assembly.py", "hivemind/git_collaboration.py", "hivemind/task_budgets.py"
+  ],
+  "queries": [
+    {"id":"memory-evidence","subset":"semantic","text":"Where are memories rejected when their supporting evidence has disappeared or become inaccessible?","relevance":{"hivemind/storage.py::Store.valid_memory":2}},
+    {"id":"atomic-storage","subset":"semantic","text":"How are nested database updates rolled back without publishing commit notifications for failed writes?","relevance":{"hivemind/storage.py::Store.transaction":2}},
+    {"id":"delete-indexes","subset":"semantic","text":"When a resource is removed, where is cleanup of its search projections and dependent evidence scheduled?","relevance":{"hivemind/storage.py::Store.delete":2}},
+    {"id":"embedding-chunks","subset":"semantic","text":"Which implementation splits long documents into overlapping windows before producing normalized embeddings?","relevance":{"hivemind/indexes.py::Gemma.documents":2}},
+    {"id":"fresh-result","subset":"semantic","text":"How does search avoid returning a record after its permissions or revision changed while ranking was running?","relevance":{"hivemind/indexes.py::Indexes._recheck":2,"hivemind/indexes.py::Indexes._current_principal":1}},
+    {"id":"cursor-tamper","subset":"semantic","text":"Where does ranked pagination detect a modified continuation token or one reused for a different query?","relevance":{"hivemind/indexes.py::Indexes._decode_cursor":2,"hivemind/indexes.py::Indexes._cursor_fingerprint":1}},
+    {"id":"redact-secrets","subset":"semantic","text":"How are secret-looking values removed recursively from captured lists and dictionaries?","relevance":{"hivemind/sdk.py::redact_value":2}},
+    {"id":"durable-controls","subset":"semantic","text":"Where is a requested pause or replacement assignment checkpoint saved before acknowledging application?","relevance":{"hivemind/sdk.py::ControlledAdapter.boundary":2}},
+    {"id":"workspace-proof","subset":"semantic","text":"Which recovery check refuses a saved session whose reported working directory does not prove the managed workspace?","relevance":{"hivemind/vendor_recovery.py::assess_load_result":2,"hivemind/vendor_recovery.py::_loaded_workspace_evidence":1}},
+    {"id":"state-owner","subset":"semantic","text":"How are private recovery files prevented from escaping their allowed directory through links or unsafe permissions?","relevance":{"hivemind/vendor_recovery.py::trusted_private_file":2}},
+    {"id":"tool-permits","subset":"semantic","text":"Where does a filesystem-writing tool request need a current run permit before it can execute?","relevance":{"hivemind/control_capture.py::ToolGateway.authorize":2}},
+    {"id":"watcher-stop","subset":"semantic","text":"How is a background watcher stopped without discarding its thread handle when shutdown times out?","relevance":{"hivemind/control_capture.py::ContinuousWatcher.stop":2}},
+    {"id":"token-fallback","subset":"semantic","text":"What chooses a local token counter and falls back conservatively when the requested tokenizer is unavailable?","relevance":{"hivemind/context_assembly.py::default_counter":2,"hivemind/context_assembly.py::_load_local_counter":1}},
+    {"id":"context-budget","subset":"semantic","text":"Where is the completed context envelope shrunk until it fits its token budget?","relevance":{"hivemind/context_assembly.py::_finalize_packet":2}},
+    {"id":"git-leader","subset":"semantic","text":"Which Git operation guard prevents publication under an expired or replaced coordinator lease?","relevance":{"hivemind/git_collaboration.py::GitCollaboration.fence":2}},
+    {"id":"budget-hold","subset":"semantic","text":"Where is a turn's prompt counted against an exact model-bound tokenizer before reserving its maximum spend?","relevance":{"hivemind/task_budgets.py::BudgetLedger.prepare":2,"hivemind/task_budgets.py::RuntimeBudgetGate.precheck":1}},
+    {"id":"symbol-vector","subset":"exact","text":"vec_distance_cosine","relevance":{"hivemind/indexes.py::Indexes._semantic_ranking":2}},
+    {"id":"symbol-claim","subset":"exact","text":"work-claims reserved_claim_id replacement_task_id","relevance":{"hivemind/sdk.py::ControlledAdapter.boundary":2}}
+  ]
+}

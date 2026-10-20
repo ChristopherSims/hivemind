@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "description": "A typed deliverable reference at an exact revision; content is never inlined.",
+  "properties": {
+    "kind": {
+      "enum": [
+        "artifact",
+        "memory",
+        "task",
+        "board_post"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "revision": {
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "note": {
+      "default": "",
+      "maxLength": 1024,
+      "title": "Note",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "id",
+    "revision"
+  ],
+  "title": "HandoffDeliverable",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

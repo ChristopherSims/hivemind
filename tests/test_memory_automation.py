@@ -154,7 +154,7 @@ def test_review_handler_failure_does_not_ack_and_success_is_explicit(world):
         return httpx.Response(response.status_code, content=response.content, headers=dict(response.headers))
     client = Client("http://testserver", token)
     client.http.close()
-    client.http = httpx.Client(base_url="http://testserver/v0.1/", headers={"Authorization": f"Bearer {token}"},
+    client.http = httpx.Client(base_url="http://testserver/v1/", headers={"Authorization": f"Bearer {token}"},
                               transport=httpx.MockTransport(forward))
     automation = MemoryAutomation(client, world.project, agent["id"], run["id"], enabled=True)
     try:
@@ -192,7 +192,7 @@ def test_concurrent_extraction_creates_one_candidate(world):
     from hivemind.storage import uid
     _, token, _, _, body = setup(world)
     def take(_):
-        response = world.client.post("/v0.1/memories:extract", json=body, headers={
+        response = world.client.post("/v1/memories:extract", json=body, headers={
             "Authorization": f"Bearer {token}", "Idempotency-Key": uid("extract")})
         assert response.status_code == 200, response.text
         return response.json()["data"]["memories"][0]["id"]

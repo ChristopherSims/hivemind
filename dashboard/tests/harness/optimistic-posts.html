@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Optimistic posts harness</title>
+    <style>
+      html, body {margin: 0; height: 100%; background: #0c121c; color: #e8eef7;
+        font: 14px/1.5 system-ui, sans-serif;}
+      #root {height: 100%; display: flex; flex-direction: column;}
+      .harness-head {display: flex; gap: 12px; align-items: center; padding: 10px;
+        border-bottom: 1px solid #2b394b; font-size: 12px;}
+      .harness-timeline {flex: 1; min-height: 0; padding: 0 16px 16px; overflow: auto;}
+      .canonical-post {border-top: 1px solid #2b394b; padding: 14px 0;}
+    </style>
+  </head>
+  <body><div id="root"></div><script type="module" src="/tests/harness/optimistic-posts-harness.tsx"></script></body>
+</html>

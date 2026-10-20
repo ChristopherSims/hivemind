@@ -1,0 +1,47 @@
+{
+  "fixture_passed": true,
+  "remaining_versions": 0,
+  "remaining_vector_chunks": 0,
+  "audit": {
+    "files": [
+      {
+        "label": "canonical",
+        "category": "sqlite",
+        "status": "scanned",
+        "marker_found": false,
+        "bytes_scanned": 3350528,
+        "sha256": "17511097f86c09caf05437844a6da05717c58a840630c3a2dbe0a92abe540b8a"
+      },
+      {
+        "label": "backup",
+        "category": "backup",
+        "status": "scanned",
+        "marker_found": true,
+        "bytes_scanned": 3350528,
+        "sha256": "5a78c07c1b0b3058baff7ee26cd3d0d2c1713bc24725e051939176272f76e41b"
+      },
+      {
+        "label": "spool",
+        "category": "spool",
+        "status": "scanned",
+        "marker_found": true,
+        "bytes_scanned": 56,
+        "sha256": "209eab494d6fdef6d26a63557beb1d2ade9d56e11098291b8f1b62e244261f57"
+      },
+      {
+        "label": "wal",
+        "category": "wal",
+        "status": "scanned",
+        "marker_found": false,
+        "bytes_scanned": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "inventory_scan_complete": true,
+    "marker_absent_from_inventory": false,
+    "physical_erasure_verified": false,
+    "scope": "Explicit files only, UTF-8/UTF-16 plaintext marker scan. Not a whole-device, encrypted/compressed backup or provider erasure proof."
+  },
+  "production_data_modified": false,
+  "meaning": "Deleted memory history and derived chunks are removed; compacted fixture SQLite/WAL pass the marker scan. Retained backup and spool are correctly detected, not erased."
+}

@@ -1,0 +1,50 @@
+/*
+ * Structural styles for VirtualTimeline. Colors, typography and item chrome come
+ * from the host stylesheet (the dashboard's .timeline / .message rules), so this
+ * file only establishes the windowing boxes and the measured-item geometry.
+ */
+
+.virtual-timeline {
+  position: relative;
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* The component compensates prepends itself; browser scroll anchoring would double up. */
+  overflow-anchor: none;
+}
+
+/* Spacer that gives the scroll container its full content height. */
+.virtual-timeline-canvas {
+  position: relative;
+  width: 100%;
+}
+
+/* Head slot scrolls with the content; it is measured to offset every item. */
+.virtual-timeline-head {
+  position: relative;
+  z-index: 1;
+}
+
+/* Flow box whose height is zero: children are absolutely positioned in it. */
+.virtual-timeline-items {
+  position: relative;
+  width: 100%;
+}
+
+/*
+ * One rendered item. `contain: layout` keeps a child's margins inside the
+ * measured box (the dashboard's .message has a bottom margin) so measured
+ * heights and the gaps between items always agree.
+ */
+.virtual-timeline-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  contain: layout;
+}
+
+.virtual-timeline-status {
+  margin: 8px 0;
+  font-size: 12px;
+  color: var(--muted, #7d8b96);
+}

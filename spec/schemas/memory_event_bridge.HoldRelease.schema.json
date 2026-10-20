@@ -1,0 +1,30 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "fingerprint": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fingerprint"
+    }
+  },
+  "required": [
+    "project_id"
+  ],
+  "title": "HoldRelease",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

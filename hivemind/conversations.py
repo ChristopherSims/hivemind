@@ -423,54 +423,54 @@ def install(app, service, principal, command, envelope):
     """
     workflows = Conversations(service)
 
-    @app.post("/v0.1/conversation-requests")
+    @app.post("/v1/conversation-requests")
     async def conversation_request_create(body: ConversationRequestCreate, p=Depends(principal),
                                          idempotency_key: str | None = Header(None)):
         return command(p, "conversation-requests", idempotency_key, body,
                        lambda: workflows.create(p, body))
 
-    @app.get("/v0.1/conversation-requests")
+    @app.get("/v1/conversation-requests")
     async def conversation_requests(project_id: str,
                                     state: str | None = Query(None, pattern="^(open|answered|cancelled|escalated)$"),
                                     limit: int = Query(MAX_LIST, ge=1, le=MAX_LIST),
                                     p=Depends(principal)):
         return envelope(workflows.list_requests(p, project_id, state, limit))
 
-    @app.get("/v0.1/conversation-requests/{request_id}")
+    @app.get("/v1/conversation-requests/{request_id}")
     async def conversation_request(request_id: str, p=Depends(principal)):
         return envelope(workflows.read(p, request_id))
 
-    @app.post("/v0.1/conversation-requests/{request_id}:respond")
+    @app.post("/v1/conversation-requests/{request_id}:respond")
     async def conversation_respond(request_id: str, body: ConversationReply, p=Depends(principal),
                                    idempotency_key: str | None = Header(None)):
         return command(p, "conversation-respond:" + request_id, idempotency_key, body,
                        lambda: workflows.respond(p, request_id, body))
 
-    @app.post("/v0.1/conversation-requests/{request_id}:reconcile")
+    @app.post("/v1/conversation-requests/{request_id}:reconcile")
     async def conversation_reconcile(request_id: str, body: ConversationReconcile, p=Depends(principal),
                                      idempotency_key: str | None = Header(None)):
         return command(p, "conversation-reconcile:" + request_id, idempotency_key, body,
                        lambda: workflows.reconcile(p, request_id, body))
 
-    @app.post("/v0.1/conversation-requests/{request_id}:cancel")
+    @app.post("/v1/conversation-requests/{request_id}:cancel")
     async def conversation_cancel(request_id: str, body: ConversationCancel, p=Depends(principal),
                                   idempotency_key: str | None = Header(None)):
         return command(p, "conversation-cancel:" + request_id, idempotency_key, body,
                        lambda: workflows.cancel(p, request_id, body))
 
-    @app.post("/v0.1/conversation-requests/{request_id}:escalate")
+    @app.post("/v1/conversation-requests/{request_id}:escalate")
     async def conversation_escalate(request_id: str, body: ConversationEscalation, p=Depends(principal),
                                     idempotency_key: str | None = Header(None)):
         return command(p, "conversation-escalate:" + request_id, idempotency_key, body,
                        lambda: workflows.escalate(p, request_id, body))
 
-    @app.get("/v0.1/conversation-escalations")
+    @app.get("/v1/conversation-escalations")
     async def conversation_escalations(project_id: str, request_id: str | None = None,
                                        limit: int = Query(MAX_LIST, ge=1, le=MAX_LIST),
                                        p=Depends(principal)):
         return envelope(workflows.list_escalations(p, project_id, request_id, limit))
 
-    @app.post("/v0.1/messages/{message_id}:renew")
+    @app.post("/v1/messages/{message_id}:renew")
     async def message_renew(message_id: str, body: LeaseRenewal, p=Depends(principal),
                             idempotency_key: str | None = Header(None)):
         return command(p, "message-renew:" + message_id, idempotency_key, body,

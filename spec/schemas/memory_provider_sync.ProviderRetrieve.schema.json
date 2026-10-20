@@ -1,0 +1,33 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "adapter": {
+      "enum": [
+        "mem0",
+        "langmem",
+        "letta"
+      ],
+      "title": "Adapter",
+      "type": "string"
+    },
+    "query": {
+      "default": "",
+      "maxLength": 4096,
+      "title": "Query",
+      "type": "string"
+    },
+    "limit": {
+      "default": 10,
+      "maximum": 20,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "adapter"
+  ],
+  "title": "ProviderRetrieve",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,202 @@
+{
+  "$defs": {
+    "HandoffDeliverable": {
+      "additionalProperties": false,
+      "description": "A typed deliverable reference at an exact revision; content is never inlined.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "artifact",
+            "memory",
+            "task",
+            "board_post"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "note": {
+          "default": "",
+          "maxLength": 1024,
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "revision"
+      ],
+      "title": "HandoffDeliverable",
+      "type": "object"
+    },
+    "PinnedRef": {
+      "additionalProperties": false,
+      "description": "A source context reference pinned to an exact current revision.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "agent",
+            "run",
+            "task",
+            "event",
+            "artifact",
+            "board_post",
+            "memory",
+            "scope",
+            "work_claim",
+            "conflict",
+            "control",
+            "decision"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "revision"
+      ],
+      "title": "PinnedRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Canonical handoff proposal bound to the exact sender execution snapshot.",
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "task_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "expected_task_revision": {
+      "minimum": 1,
+      "title": "Expected Task Revision",
+      "type": "integer"
+    },
+    "source_run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Source Run Id",
+      "type": "string"
+    },
+    "source_execution_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Source Execution Id",
+      "type": "string"
+    },
+    "recipient_agent_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Recipient Agent Id",
+      "type": "string"
+    },
+    "recipient_run_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Recipient Run Id"
+    },
+    "summary": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "required_capabilities": {
+      "items": {
+        "maxLength": 64,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 16,
+      "title": "Required Capabilities",
+      "type": "array"
+    },
+    "context_refs": {
+      "items": {
+        "$ref": "#/$defs/PinnedRef"
+      },
+      "maxItems": 16,
+      "title": "Context Refs",
+      "type": "array"
+    },
+    "deliverables": {
+      "items": {
+        "$ref": "#/$defs/HandoffDeliverable"
+      },
+      "maxItems": 16,
+      "title": "Deliverables",
+      "type": "array"
+    },
+    "unresolved_questions": {
+      "items": {
+        "maxLength": 1024,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 8,
+      "title": "Unresolved Questions",
+      "type": "array"
+    },
+    "transfer": {
+      "default": "context",
+      "enum": [
+        "context",
+        "ownership"
+      ],
+      "title": "Transfer",
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "task_id",
+    "expected_task_revision",
+    "source_run_id",
+    "source_execution_id",
+    "recipient_agent_id",
+    "summary"
+  ],
+  "title": "HandoffOffer",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

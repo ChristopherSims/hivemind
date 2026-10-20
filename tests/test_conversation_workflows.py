@@ -26,7 +26,7 @@ class Harness:
         self.project, self.owner = config["project_id"], config["token"]
 
     def raw(self, method, path, body=None, token=None, key=None):
-        return self.client.request(method, "/v0.1/" + path, json=body, headers={
+        return self.client.request(method, "/v1/" + path, json=body, headers={
             "Authorization": "Bearer " + (token or self.owner), "Idempotency-Key": key or uid("key")})
 
     def call(self, method, path, body=None, token=None, key=None, status=200):
@@ -510,7 +510,7 @@ def test_python_helper_bounds_polling_reply_and_one_time_escalation(world, monke
     def client_for(token):
         client = Client("http://testserver", token)
         client.http.close()
-        client.http = httpx.Client(base_url="http://testserver/v0.1/",
+        client.http = httpx.Client(base_url="http://testserver/v1/",
                                    headers={"Authorization": f"Bearer {token}"},
                                    transport=httpx.MockTransport(forward))
         return client

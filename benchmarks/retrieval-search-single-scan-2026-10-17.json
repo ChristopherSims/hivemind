@@ -1,0 +1,1058 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "environment": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.12.13",
+    "machine": "AMD64",
+    "processor": "AMD64 Family 23 Model 113 Stepping 0, AuthenticAMD",
+    "logical_cpus": 24,
+    "packages": {
+      "sqlite-vec": "0.1.9",
+      "ladybug": "0.21.2",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.14.1",
+      "tokenizers": "0.23.3"
+    }
+  },
+  "dataset_version": "hivemind-retrieval-v1",
+  "dataset_sha256": "81a284dbb8a2eb964ad7a93eea7af1cecd054529129830b879563459bce2c027",
+  "dataset_documents": 24,
+  "dataset_queries": 8,
+  "model": null,
+  "model_revision": null,
+  "embedding_device": null,
+  "embedding_dtype": null,
+  "model_load_ms": null,
+  "retrieval_implementation_sha256": "e80f752648828ed9f9f14aece8b7ff3c606cfa51d2454e87df2cf37b02f03a55",
+  "quality": {
+    "comparisons": [
+      {
+        "mode": "lexical",
+        "dimension": null,
+        "recall_at_10": 0.8125,
+        "mrr_at_10": 0.7916666666666666,
+        "ndcg_at_10": 0.68918177058775,
+        "forbidden_result_rate": 0.0,
+        "latency": {
+          "samples": 40,
+          "p50_ms": 2.344599983189255,
+          "p95_ms": 3.0586000066250563,
+          "max_ms": 3.229700028896332
+        },
+        "subsets": {
+          "multilingual": {
+            "recall_at_10": 0.5,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.6131471927654584,
+            "forbidden_result_rate": 0.0
+          },
+          "exact": {
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_result_rate": 0.0
+          },
+          "semantic": {
+            "recall_at_10": 0.8333333333333334,
+            "mrr_at_10": 0.7222222222222222,
+            "ndcg_at_10": 0.6500511619894236,
+            "forbidden_result_rate": 0.0
+          }
+        },
+        "queries": [
+          {
+            "query_id": "navigation",
+            "subset": "semantic",
+            "ranked_ids": [
+              "erase-negative",
+              "epoch-negative",
+              "nav-a",
+              "auth-negative",
+              "retry-negative",
+              "nav-b",
+              "erase-b",
+              "nav-negative",
+              "epoch-a",
+              "wal-a"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.3333333333333333,
+            "ndcg_at_10": 0.5249810332008934,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "navigation",
+            "subset": "semantic",
+            "ranked_ids": [
+              "erase-negative",
+              "epoch-negative",
+              "nav-a",
+              "auth-negative",
+              "retry-negative",
+              "nav-b",
+              "erase-b",
+              "nav-negative",
+              "epoch-a",
+              "wal-a"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.3333333333333333,
+            "ndcg_at_10": 0.5249810332008934,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "navigation",
+            "subset": "semantic",
+            "ranked_ids": [
+              "erase-negative",
+              "epoch-negative",
+              "nav-a",
+              "auth-negative",
+              "retry-negative",
+              "nav-b",
+              "erase-b",
+              "nav-negative",
+              "epoch-a",
+              "wal-a"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.3333333333333333,
+            "ndcg_at_10": 0.5249810332008934,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "navigation",
+            "subset": "semantic",
+            "ranked_ids": [
+              "erase-negative",
+              "epoch-negative",
+              "nav-a",
+              "auth-negative",
+              "retry-negative",
+              "nav-b",
+              "erase-b",
+              "nav-negative",
+              "epoch-a",
+              "wal-a"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.3333333333333333,
+            "ndcg_at_10": 0.5249810332008934,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "navigation",
+            "subset": "semantic",
+            "ranked_ids": [
+              "erase-negative",
+              "epoch-negative",
+              "nav-a",
+              "auth-negative",
+              "retry-negative",
+              "nav-b",
+              "erase-b",
+              "nav-negative",
+              "epoch-a",
+              "wal-a"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.3333333333333333,
+            "ndcg_at_10": 0.5249810332008934,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "session",
+            "subset": "semantic",
+            "ranked_ids": [
+              "wal-a",
+              "auth-b",
+              "nav-b",
+              "retry-b",
+              "epoch-a",
+              "auth-a",
+              "retry-a"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.6052602440527058,
+            "forbidden_results": 0,
+            "returned_results": 7,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "session",
+            "subset": "semantic",
+            "ranked_ids": [
+              "wal-a",
+              "auth-b",
+              "nav-b",
+              "retry-b",
+              "epoch-a",
+              "auth-a",
+              "retry-a"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.6052602440527058,
+            "forbidden_results": 0,
+            "returned_results": 7,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "session",
+            "subset": "semantic",
+            "ranked_ids": [
+              "wal-a",
+              "auth-b",
+              "nav-b",
+              "retry-b",
+              "epoch-a",
+              "auth-a",
+              "retry-a"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.6052602440527058,
+            "forbidden_results": 0,
+            "returned_results": 7,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "session",
+            "subset": "semantic",
+            "ranked_ids": [
+              "wal-a",
+              "auth-b",
+              "nav-b",
+              "retry-b",
+              "epoch-a",
+              "auth-a",
+              "retry-a"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.6052602440527058,
+            "forbidden_results": 0,
+            "returned_results": 7,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "session",
+            "subset": "semantic",
+            "ranked_ids": [
+              "wal-a",
+              "auth-b",
+              "nav-b",
+              "retry-b",
+              "epoch-a",
+              "auth-a",
+              "retry-a"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.6052602440527058,
+            "forbidden_results": 0,
+            "returned_results": 7,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "sqlite",
+            "subset": "semantic",
+            "ranked_ids": [
+              "wal-a",
+              "wal-negative",
+              "wal-b",
+              "symbol-b",
+              "symbol-negative",
+              "symbol-a",
+              "erase-a",
+              "nav-a",
+              "erase-negative",
+              "epoch-negative"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.9197207891481876,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "sqlite",
+            "subset": "semantic",
+            "ranked_ids": [
+              "wal-a",
+              "wal-negative",
+              "wal-b",
+              "symbol-b",
+              "symbol-negative",
+              "symbol-a",
+              "erase-a",
+              "nav-a",
+              "erase-negative",
+              "epoch-negative"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.9197207891481876,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "sqlite",
+            "subset": "semantic",
+            "ranked_ids": [
+              "wal-a",
+              "wal-negative",
+              "wal-b",
+              "symbol-b",
+              "symbol-negative",
+              "symbol-a",
+              "erase-a",
+              "nav-a",
+              "erase-negative",
+              "epoch-negative"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.9197207891481876,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "sqlite",
+            "subset": "semantic",
+            "ranked_ids": [
+              "wal-a",
+              "wal-negative",
+              "wal-b",
+              "symbol-b",
+              "symbol-negative",
+              "symbol-a",
+              "erase-a",
+              "nav-a",
+              "erase-negative",
+              "epoch-negative"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.9197207891481876,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "sqlite",
+            "subset": "semantic",
+            "ranked_ids": [
+              "wal-a",
+              "wal-negative",
+              "wal-b",
+              "symbol-b",
+              "symbol-negative",
+              "symbol-a",
+              "erase-a",
+              "nav-a",
+              "erase-negative",
+              "epoch-negative"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.9197207891481876,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "fencing",
+            "subset": "semantic",
+            "ranked_ids": [
+              "epoch-b",
+              "erase-a",
+              "retry-b",
+              "erase-b",
+              "auth-a",
+              "wal-a",
+              "erase-negative",
+              "epoch-negative",
+              "symbol-negative",
+              "nav-b"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.6131471927654584,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "fencing",
+            "subset": "semantic",
+            "ranked_ids": [
+              "epoch-b",
+              "erase-a",
+              "retry-b",
+              "erase-b",
+              "auth-a",
+              "wal-a",
+              "erase-negative",
+              "epoch-negative",
+              "symbol-negative",
+              "nav-b"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.6131471927654584,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "fencing",
+            "subset": "semantic",
+            "ranked_ids": [
+              "epoch-b",
+              "erase-a",
+              "retry-b",
+              "erase-b",
+              "auth-a",
+              "wal-a",
+              "erase-negative",
+              "epoch-negative",
+              "symbol-negative",
+              "nav-b"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.6131471927654584,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "fencing",
+            "subset": "semantic",
+            "ranked_ids": [
+              "epoch-b",
+              "erase-a",
+              "retry-b",
+              "erase-b",
+              "auth-a",
+              "wal-a",
+              "erase-negative",
+              "epoch-negative",
+              "symbol-negative",
+              "nav-b"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.6131471927654584,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "fencing",
+            "subset": "semantic",
+            "ranked_ids": [
+              "epoch-b",
+              "erase-a",
+              "retry-b",
+              "erase-b",
+              "auth-a",
+              "wal-a",
+              "erase-negative",
+              "epoch-negative",
+              "symbol-negative",
+              "nav-b"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.6131471927654584,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "erasure",
+            "subset": "semantic",
+            "ranked_ids": [
+              "erase-a",
+              "epoch-b",
+              "auth-negative",
+              "auth-a",
+              "erase-b",
+              "nav-negative",
+              "epoch-a",
+              "wal-a",
+              "erase-negative",
+              "epoch-negative"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.8503449055347546,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "erasure",
+            "subset": "semantic",
+            "ranked_ids": [
+              "erase-a",
+              "epoch-b",
+              "auth-negative",
+              "auth-a",
+              "erase-b",
+              "nav-negative",
+              "epoch-a",
+              "wal-a",
+              "erase-negative",
+              "epoch-negative"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.8503449055347546,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "erasure",
+            "subset": "semantic",
+            "ranked_ids": [
+              "erase-a",
+              "epoch-b",
+              "auth-negative",
+              "auth-a",
+              "erase-b",
+              "nav-negative",
+              "epoch-a",
+              "wal-a",
+              "erase-negative",
+              "epoch-negative"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.8503449055347546,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "erasure",
+            "subset": "semantic",
+            "ranked_ids": [
+              "erase-a",
+              "epoch-b",
+              "auth-negative",
+              "auth-a",
+              "erase-b",
+              "nav-negative",
+              "epoch-a",
+              "wal-a",
+              "erase-negative",
+              "epoch-negative"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.8503449055347546,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "erasure",
+            "subset": "semantic",
+            "ranked_ids": [
+              "erase-a",
+              "epoch-b",
+              "auth-negative",
+              "auth-a",
+              "erase-b",
+              "nav-negative",
+              "epoch-a",
+              "wal-a",
+              "erase-negative",
+              "epoch-negative"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.8503449055347546,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "uncertain",
+            "subset": "semantic",
+            "ranked_ids": [
+              "symbol-a",
+              "retry-a",
+              "nav-negative",
+              "erase-a",
+              "erase-negative",
+              "epoch-negative",
+              "nav-a",
+              "wal-a",
+              "symbol-negative",
+              "nav-b"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.3868528072345416,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "uncertain",
+            "subset": "semantic",
+            "ranked_ids": [
+              "symbol-a",
+              "retry-a",
+              "nav-negative",
+              "erase-a",
+              "erase-negative",
+              "epoch-negative",
+              "nav-a",
+              "wal-a",
+              "symbol-negative",
+              "nav-b"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.3868528072345416,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "uncertain",
+            "subset": "semantic",
+            "ranked_ids": [
+              "symbol-a",
+              "retry-a",
+              "nav-negative",
+              "erase-a",
+              "erase-negative",
+              "epoch-negative",
+              "nav-a",
+              "wal-a",
+              "symbol-negative",
+              "nav-b"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.3868528072345416,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "uncertain",
+            "subset": "semantic",
+            "ranked_ids": [
+              "symbol-a",
+              "retry-a",
+              "nav-negative",
+              "erase-a",
+              "erase-negative",
+              "epoch-negative",
+              "nav-a",
+              "wal-a",
+              "symbol-negative",
+              "nav-b"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.3868528072345416,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "uncertain",
+            "subset": "semantic",
+            "ranked_ids": [
+              "symbol-a",
+              "retry-a",
+              "nav-negative",
+              "erase-a",
+              "erase-negative",
+              "epoch-negative",
+              "nav-a",
+              "wal-a",
+              "symbol-negative",
+              "nav-b"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.3868528072345416,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "symbol",
+            "subset": "exact",
+            "ranked_ids": [
+              "symbol-a",
+              "symbol-b"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 2,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "symbol",
+            "subset": "exact",
+            "ranked_ids": [
+              "symbol-a",
+              "symbol-b"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 2,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "symbol",
+            "subset": "exact",
+            "ranked_ids": [
+              "symbol-a",
+              "symbol-b"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 2,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "symbol",
+            "subset": "exact",
+            "ranked_ids": [
+              "symbol-a",
+              "symbol-b"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 2,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "symbol",
+            "subset": "exact",
+            "ranked_ids": [
+              "symbol-a",
+              "symbol-b"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 2,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "spanish",
+            "subset": "multilingual",
+            "ranked_ids": [
+              "multilingual-a"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.6131471927654584,
+            "forbidden_results": 0,
+            "returned_results": 1,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "spanish",
+            "subset": "multilingual",
+            "ranked_ids": [
+              "multilingual-a"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.6131471927654584,
+            "forbidden_results": 0,
+            "returned_results": 1,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "spanish",
+            "subset": "multilingual",
+            "ranked_ids": [
+              "multilingual-a"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.6131471927654584,
+            "forbidden_results": 0,
+            "returned_results": 1,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "spanish",
+            "subset": "multilingual",
+            "ranked_ids": [
+              "multilingual-a"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.6131471927654584,
+            "forbidden_results": 0,
+            "returned_results": 1,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "spanish",
+            "subset": "multilingual",
+            "ranked_ids": [
+              "multilingual-a"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.6131471927654584,
+            "forbidden_results": 0,
+            "returned_results": 1,
+            "forbidden_result_rate": 0.0
+          }
+        ]
+      }
+    ],
+    "document_encoding": null,
+    "method": "Production Indexes.search, FTS5/sqlite-vec/RRF and authorization. Reduced dimensions are prefix-truncated, renormalized and zero-padded; storage/latency do not simulate a smaller vec0 column. Document encodings reused across dimensions; search includes query encoding. One warm-up per query/mode/dimension; no HTTP overhead."
+  },
+  "scale": null,
+  "search_scale": {
+    "resources": 10000,
+    "repeats": 5,
+    "comparisons": {
+      "lexical": {
+        "latency": {
+          "samples": 5,
+          "p50_ms": 457.77259999886155,
+          "p95_ms": 479.96180003974587,
+          "max_ms": 479.96180003974587
+        },
+        "stages": {
+          "_authorized_meta": {
+            "samples": 5,
+            "p50_ms": 420.79569993074983,
+            "p95_ms": 438.5639999527484,
+            "max_ms": 438.5639999527484
+          },
+          "_lexical_ranking": {
+            "samples": 5,
+            "p50_ms": 32.10319997742772,
+            "p95_ms": 40.16380000393838,
+            "max_ms": 40.16380000393838
+          }
+        },
+        "ranked_ids": [
+          "scale-0000000",
+          "scale-0000001",
+          "scale-0000002",
+          "scale-0000003",
+          "scale-0000004",
+          "scale-0000005",
+          "scale-0000006",
+          "scale-0000007",
+          "scale-0000008",
+          "scale-0000009"
+        ],
+        "scan": {
+          "scan_limit": 10001,
+          "rank_depth": 4096,
+          "authorized_candidates": {
+            "board_post": 10000
+          },
+          "scan_truncated": {
+            "board_post": false
+          },
+          "rank_truncated": true,
+          "time_budget_exceeded": false
+        }
+      },
+      "semantic": {
+        "latency": {
+          "samples": 5,
+          "p50_ms": 7193.359399912879,
+          "p95_ms": 7381.630100077018,
+          "max_ms": 7381.630100077018
+        },
+        "stages": {
+          "_authorized_meta": {
+            "samples": 5,
+            "p50_ms": 421.8432999914512,
+            "p95_ms": 478.9195000194013,
+            "max_ms": 478.9195000194013
+          },
+          "_semantic_ranking": {
+            "samples": 5,
+            "p50_ms": 6761.352100060321,
+            "p95_ms": 6953.975299955346,
+            "max_ms": 6953.975299955346
+          }
+        },
+        "ranked_ids": [
+          "scale-0008706",
+          "scale-0004051",
+          "scale-0009504",
+          "scale-0003945",
+          "scale-0001341",
+          "scale-0002273",
+          "scale-0003314",
+          "scale-0003200",
+          "scale-0009507",
+          "scale-0008670"
+        ],
+        "scan": {
+          "scan_limit": 10001,
+          "rank_depth": 4096,
+          "authorized_candidates": {
+            "board_post": 10000
+          },
+          "scan_truncated": {
+            "board_post": false
+          },
+          "rank_truncated": true,
+          "time_budget_exceeded": false
+        }
+      },
+      "hybrid": {
+        "latency": {
+          "samples": 5,
+          "p50_ms": 7934.523699921556,
+          "p95_ms": 8435.688099940307,
+          "max_ms": 8435.688099940307
+        },
+        "stages": {
+          "_authorized_meta": {
+            "samples": 5,
+            "p50_ms": 451.62760000675917,
+            "p95_ms": 529.9502999987453,
+            "max_ms": 529.9502999987453
+          },
+          "_lexical_ranking": {
+            "samples": 5,
+            "p50_ms": 32.541200052946806,
+            "p95_ms": 40.41799996048212,
+            "max_ms": 40.41799996048212
+          },
+          "_semantic_ranking": {
+            "samples": 5,
+            "p50_ms": 7364.67859998811,
+            "p95_ms": 7940.8891999628395,
+            "max_ms": 7940.8891999628395
+          }
+        },
+        "ranked_ids": [
+          "scale-0000000",
+          "scale-0000002",
+          "scale-0000001",
+          "scale-0008706",
+          "scale-0004051",
+          "scale-0000003",
+          "scale-0001341",
+          "scale-0000007",
+          "scale-0003945",
+          "scale-0009504"
+        ],
+        "scan": {
+          "scan_limit": 10001,
+          "rank_depth": 4096,
+          "authorized_candidates": {
+            "board_post": 10000
+          },
+          "scan_truncated": {
+            "board_post": false
+          },
+          "rank_truncated": true,
+          "time_budget_exceeded": false
+        }
+      }
+    },
+    "semantic_query_plan": [
+      [
+        9,
+        0,
+        215,
+        "SCAN v VIRTUAL TABLE INDEX 0:1"
+      ],
+      [
+        16,
+        0,
+        0,
+        "LIST SUBQUERY 2"
+      ],
+      [
+        20,
+        16,
+        107,
+        "SEARCH vector_chunks USING INDEX sqlite_autoindex_vector_chunks_1 (resource=? AND revision=?)"
+      ],
+      [
+        24,
+        16,
+        0,
+        "LIST SUBQUERY 4"
+      ],
+      [
+        26,
+        24,
+        0,
+        "SCAN json_each VIRTUAL TABLE INDEX 1:"
+      ],
+      [
+        54,
+        16,
+        0,
+        "CREATE BLOOM FILTER"
+      ],
+      [
+        63,
+        0,
+        45,
+        "SEARCH c USING INTEGER PRIMARY KEY (rowid=?)"
+      ],
+      [
+        66,
+        0,
+        0,
+        "USE TEMP B-TREE FOR GROUP BY"
+      ],
+      [
+        110,
+        0,
+        0,
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    ],
+    "method": "Production search, identical deterministic one-chunk vectors and canonical documents to run_scale. Bulk fixture seeding, no graph work or indexing throughput claim. One warm-up per mode; query encoding included. Synthetic vectors are not semantic-quality evidence."
+  }
+}

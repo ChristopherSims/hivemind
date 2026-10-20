@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "required_runtime": {
+      "anyOf": [
+        {
+          "enum": [
+            "factory",
+            "oh_my_pi",
+            "a2a",
+            "acp"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Required Runtime"
+    },
+    "required_tools": {
+      "items": {
+        "maxLength": 64,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 32,
+      "title": "Required Tools",
+      "type": "array"
+    },
+    "strict_sandbox": {
+      "default": false,
+      "title": "Strict Sandbox",
+      "type": "boolean"
+    }
+  },
+  "title": "TaskRoutingRequirements",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>VirtualTimeline harness</title>
+    <style>
+      html, body {margin: 0; height: 100%; font: 14px/1.5 system-ui, sans-serif; color: #1b2430;}
+      #root {height: 100%; display: flex; flex-direction: column;}
+      .controls {display: flex; gap: 8px; align-items: center; padding: 8px; border-bottom: 1px solid #c8d2dc;}
+      .harness-timeline {flex: 1; min-height: 0; padding: 0 12px 12px;}
+      .row {border: 1px solid #c8d2dc; border-radius: 8px; margin: 0 0 12px; padding: 10px; background: #fff;}
+      .row.short {height: 96px;}
+      .row.tall {height: 280px;}
+      .empty, .loading, .header-extra {padding: 10px;}
+      .empty {border: 1px dashed #c8d2dc; border-radius: 8px;}
+    </style>
+  </head>
+  <body><div id="root"></div><script type="module" src="/tests/harness/virtual-timeline-harness.tsx"></script></body>
+</html>

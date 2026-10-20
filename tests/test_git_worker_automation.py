@@ -23,7 +23,7 @@ def sdk_client(world, token):
 
     client = Client("http://testserver", token)
     client.http.close()
-    client.http = httpx.Client(base_url="http://testserver/v0.1/",
+    client.http = httpx.Client(base_url="http://testserver/v1/",
                                headers={"Authorization": f"Bearer {token}"},
                                transport=httpx.MockTransport(forward))
     return client

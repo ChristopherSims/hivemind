@@ -1,0 +1,146 @@
+.conflict-console {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  color: var(--text);
+}
+
+.conflict-console-header h1 {
+  margin: 0 0 var(--space-1);
+  font-size: 20px;
+}
+
+.conflict-console-lease {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-small);
+}
+
+.conflict-console-error {
+  background: var(--accent-surface);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-control);
+  padding: var(--space-2) var(--space-3);
+  color: var(--danger);
+}
+
+.conflict-console-redaction {
+  font-size: var(--font-small);
+  color: var(--muted);
+}
+
+.conflict-console-receipt {
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  padding: var(--space-2) var(--space-3);
+}
+
+.conflict-console-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  padding: var(--space-4);
+}
+
+.conflict-console-panel h2 {
+  margin: 0 0 var(--space-3);
+  font-size: 15px;
+}
+
+.conflict-console-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+  background: var(--raised);
+}
+
+.conflict-console-card p {
+  margin: var(--space-1) 0;
+}
+
+.conflict-console-card[data-overlapping="true"] {
+  border-color: var(--accent-border);
+}
+
+.conflict-console-warning {
+  color: var(--accent);
+}
+
+.conflict-console-controls {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.conflict-console-controls button {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.conflict-console-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.conflict-console-pager {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-small);
+  color: var(--muted);
+}
+
+.conflict-console-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #0008;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+}
+
+.conflict-console-dialog {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  padding: var(--space-5);
+  max-width: 520px;
+  width: calc(100% - 2 * var(--space-5));
+}
+
+.conflict-console-dialog h2 {
+  margin-top: 0;
+  font-size: 16px;
+}
+
+.conflict-console-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-3) 0;
+  font-size: var(--font-small);
+  color: var(--muted);
+}
+
+.conflict-console-field textarea,
+.conflict-console-field select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  padding: var(--space-2);
+  min-height: 64px;
+  font: inherit;
+}
+
+.conflict-console-field select {
+  min-height: var(--control-height);
+}

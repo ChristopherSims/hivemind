@@ -1,0 +1,30 @@
+{
+  "additionalProperties": false,
+  "description": "Trusted operator price schedule; the only non-provider cost authority.",
+  "properties": {
+    "currency": {
+      "maxLength": 32,
+      "minLength": 1,
+      "title": "Currency",
+      "type": "string"
+    },
+    "prices": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "type": "number"
+        },
+        "type": "object"
+      },
+      "maxProperties": 256,
+      "title": "Prices",
+      "type": "object"
+    }
+  },
+  "required": [
+    "currency",
+    "prices"
+  ],
+  "title": "PriceSchedule",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

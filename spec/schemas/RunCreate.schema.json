@@ -40,6 +40,41 @@
       ],
       "default": null,
       "title": "Task Id"
+    },
+    "purpose": {
+      "anyOf": [
+        {
+          "enum": [
+            "task_worker",
+            "observer",
+            "auxiliary"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Purpose"
+    },
+    "runtime": {
+      "anyOf": [
+        {
+          "enum": [
+            "factory",
+            "oh_my_pi",
+            "a2a",
+            "acp"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Runtime"
     }
   },
   "required": [

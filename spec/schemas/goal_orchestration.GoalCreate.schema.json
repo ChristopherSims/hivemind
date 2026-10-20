@@ -1,0 +1,202 @@
+{
+  "$defs": {
+    "PlannedTask": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "maxLength": 65536,
+          "title": "Description",
+          "type": "string"
+        },
+        "scope_ids": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Scope Ids",
+          "type": "array"
+        },
+        "depends_on": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Depends On",
+          "type": "array"
+        },
+        "external_dependency_ids": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "External Dependency Ids",
+          "type": "array"
+        },
+        "priority": {
+          "default": 0,
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Priority",
+          "type": "integer"
+        },
+        "required_capabilities": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Required Capabilities",
+          "type": "array"
+        },
+        "max_attempts": {
+          "default": 3,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "require_verified_dependencies": {
+          "default": false,
+          "title": "Require Verified Dependencies",
+          "type": "boolean"
+        },
+        "routing": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TaskRoutingRequirements"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "key",
+        "title"
+      ],
+      "title": "PlannedTask",
+      "type": "object"
+    },
+    "TaskRoutingRequirements": {
+      "additionalProperties": false,
+      "properties": {
+        "required_runtime": {
+          "anyOf": [
+            {
+              "enum": [
+                "factory",
+                "oh_my_pi",
+                "a2a",
+                "acp"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Required Runtime"
+        },
+        "required_tools": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Required Tools",
+          "type": "array"
+        },
+        "strict_sandbox": {
+          "default": false,
+          "title": "Strict Sandbox",
+          "type": "boolean"
+        }
+      },
+      "title": "TaskRoutingRequirements",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 512,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "statement": {
+      "maxLength": 65536,
+      "minLength": 1,
+      "title": "Statement",
+      "type": "string"
+    },
+    "description": {
+      "default": "",
+      "maxLength": 65536,
+      "title": "Description",
+      "type": "string"
+    },
+    "scope_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 32,
+      "title": "Scope Ids",
+      "type": "array"
+    },
+    "steps": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/PlannedTask"
+          },
+          "maxItems": 64,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Steps"
+    }
+  },
+  "required": [
+    "project_id",
+    "title",
+    "statement"
+  ],
+  "title": "GoalCreate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

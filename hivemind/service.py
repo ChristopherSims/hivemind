@@ -13,6 +13,8 @@ class Service:
     def __init__(self, store):
         self.store = store
         self.indexes = None
+        from .nexus_delegation import NexusDelegation
+        self.nexus_delegation = NexusDelegation(self)
 
     def project_access(self, principal, project, human=False):
         self.store.project(project)
@@ -34,7 +36,7 @@ class Service:
     def mutate(self, principal, operation, key, payload, function):
         if not key or len(key) > 128:
             raise Problem("idempotency_key_required", 422)
-        with self.store.transaction():
+        with self.store.transaction(), self.store.acting_as(principal):
             old = self.store.db.execute(
                 "SELECT * FROM commands WHERE principal=? AND operation=? AND key=?",
                 (principal["id"], operation, key),
@@ -56,7 +58,18 @@ class Service:
                 if isinstance(cached, dict) and cached.get("id"):
                     # A retry is not an escape hatch around deletion, source invalidation, or current ACLs.
                     row = self.store.raw(cached["id"])
+                    if row["kind"] == "control" and operation == "controls":
+                        current = json.loads(row["body"])
+                        self.coordinator(principal, current["project_id"], current["coordinator_epoch"],
+                                         current["action"], current["target_agent_id"])
+                        if principal["role"] != "admin":
+                            self.nexus_delegation.check_control(current)
+                    if row["kind"] == "nexus_grant":
+                        return self.store.get(cached["id"], principal, "nexus_grant")
                     self.store.get(cached["id"], principal, review_memory=operation.startswith("memory-"))
+                    self.store.team_access.require_contribute(row, principal)
+                    if row["kind"] in ("team", "resource_access"):
+                        return self.store.get(cached["id"], principal)
                     if row["kind"] == "message" and operation.startswith("claim:"):
                         current = json.loads(row["body"])
                         if (self.delivery_state(current)["delivery_status"] != "leased" or
@@ -89,8 +102,9 @@ class Service:
 
     def create(self, principal, kind, data, private=None):
         self.project_access(principal, data["project_id"])
-        return self.store.save(kind, data["project_id"], principal["id"],
-                               {"id": uid(kind), "created_at": now(), **data}, private)
+        with self.store.acting_as(principal):
+            return self.store.save(kind, data["project_id"], principal["id"],
+                                   {"id": uid(kind), "created_at": now(), **data}, private)
 
     def agent(self, principal, request):
         if principal["role"] != "admin":
@@ -133,6 +147,8 @@ class Service:
             raise Problem("revision_conflict", 412)
         if task["status"] in ("completed", "failed"):
             raise Problem("terminal_task")
+        if (task.get("scheduling") or {}).get("state") == "superseded":
+            raise Problem("task_superseded")
         prior = task.get("execution")
         if prior:
             old = self.store.get(prior["run_id"], principal, "run")
@@ -143,6 +159,17 @@ class Service:
                 raise Problem("task_execution_active")
         elif request.recover:
             raise Problem("no_execution_to_recover")
+        if task.get("depends_on") and (getattr(self, "task_dependency_gates", ()) or task.get("plan_id")):
+            from .scheduling import Scheduling
+            if not Scheduling(self)._dependencies_met(principal, task):
+                raise Problem("task_dependencies_held")
+        for gate in getattr(self, "task_start_gates", getattr(self, "task_dispatch_gates", ())):
+            verdict = gate(principal, task, run)
+            if verdict is not None:
+                if not isinstance(verdict, dict) or verdict.get("action") not in ("allow", "defer"):
+                    raise Problem("invalid_dispatch_gate", 503)
+                if verdict["action"] == "defer":
+                    raise Problem("task_dispatch_held")
         self.task_permit(principal, run["id"], task)
         if run.get("task_id") not in (None, task_id):
             raise Problem("run_already_assigned")
@@ -153,6 +180,9 @@ class Service:
                     execution={"id": uid("execution"), "run_id": run["id"], "agent_id": run["agent_id"],
                                "started_at": now(), "progress": prior.get("progress", 0) if prior else 0,
                                "checkpoint": prior.get("checkpoint") if prior else None})
+        budgets = getattr(self, "task_budgets", None)
+        if budgets is not None and budgets.policy.enabled:
+            task["execution"]["budget_required"] = True
         row = self.store.raw(task_id)
         result = self.store.save("task", row["project"], row["owner"], task, expected=request.expected_revision)
         run["task_id"] = task_id
@@ -228,7 +258,8 @@ class Service:
         if request.source.kind == "filesystem" and request.source.attribution == "confirmed":
             raise Problem("unattributed_observation_required", 422)
         checksum = digest(data)
-        with self.store.transaction():
+        with self.store.transaction(), self.store.acting_as(principal):
+            self.store.team_access.require_contribute(self.store.raw(request.run_id, "run"), principal)
             old = self.store.db.execute(
                 "SELECT * FROM events WHERE project=? AND (id=? OR (source=? AND source_seq=?))",
                 (request.project_id, request.event_id, request.source.source_id, request.source.sequence),
@@ -309,6 +340,7 @@ class Service:
 
     def board_post(self, principal, board_id, request):
         board = self.store.get(board_id, principal, "board")
+        self.store.team_access.require_contribute(self.store.raw(board_id, "board"), principal)
         project = board["project_id"]
         self.project_access(principal, project)
         refs = [x.model_dump(exclude_none=True) for x in request.evidence_refs]
@@ -323,6 +355,12 @@ class Service:
         mentions = {s["agent_id"] for s in content.get("segments", []) if s["kind"] == "agent_mention"}
         for agent in mentions:
             self.reference(principal, project, agent, "agent")
+            recipient = {"role": "agent", "agent": agent, "project": project}
+            prospective = {"id": uid("board_post"), "kind": "board_post", "project": project,
+                           "private_agent": None, "body": canonical({
+                               **request.model_dump(exclude_none=True), "board_id": board_id})}
+            if not self.store.visible(prospective, recipient):
+                raise Problem("mention_recipient_unavailable", 422)
         author = ({"kind": "agent", "agent_id": principal["agent"]}
                   if principal["agent"] else {"kind": "human", "principal_id": principal["id"]})
         post = self.create(principal, "board_post", {
@@ -582,7 +620,7 @@ class Service:
         return {"states": states, "unread": unread, "by_agent": by_agent,
                 "count": len(items), "limit": 1000}
 
-    def memory(self, principal, request, extraction=None):
+    def memory(self, principal, request, extraction=None, provider=None):
         private = principal["agent"] if request.private else None
         if request.private and not private:
             raise Problem("agent_private_scope_required", 422)
@@ -607,6 +645,8 @@ class Service:
             "memory_version_id": uid("memver"), "evidence_refs": refs,
             "created_by": principal["id"],
             **({"origin": "extracted", "extraction": extraction} if extraction else {}),
+            **({"origin": "provider_import", "provider_import": provider, "trust": "provider_reported"}
+               if provider else {}),
         }, private)
         for ref in refs:
             self.store.relate(request.project_id, memory["id"], ref["id"], "SUPPORTED_BY")
@@ -997,6 +1037,8 @@ class Service:
             raise Problem("not_found", 404)
         if principal["role"] != "admin" and not principal["coordinator"]:
             raise Problem("coordinator_grant_required", 403)
+        if principal["role"] != "admin" and getattr(self, "nexus_delegation", None):
+            self.nexus_delegation.check(project, request.agent_id, "lease")
         if self.lease(principal, project):
             raise Problem("coordinator_already_active")
         self.retire_controls(principal, project)
@@ -1011,19 +1053,30 @@ class Service:
             git.fence(lease)
         return lease
 
-    def coordinator(self, principal, project, epoch):
+    def coordinator(self, principal, project, epoch, action=None, target_agent=None):
         lease = self.lease(principal, project)
         if not lease or lease["coordinator_epoch"] != epoch:
             raise Problem("stale_coordinator_epoch")
+        current = self.store.db.execute("SELECT * FROM principals WHERE id=?", (principal["id"],)).fetchone()
+        if current is None or any(current[key] != principal[key] for key in
+                                  ("role", "project", "agent", "token_hash", "coordinator")):
+            raise Problem("authentication_required", 401)
         self.represent(principal, lease["agent_id"])
         if principal["role"] != "admin" and not principal["coordinator"]:
             raise Problem("coordinator_grant_required", 403)
+        if principal["role"] != "admin" and getattr(self, "nexus_delegation", None):
+            self.nexus_delegation.check(project, lease["agent_id"], action, target_agent)
         return lease
 
     def control(self, principal, request):
-        lease = self.coordinator(principal, request.project_id, request.coordinator_epoch)
-        self.retire_controls(principal, request.project_id)
         target = self.reference(principal, request.project_id, request.target_run_id, "run")
+        lease = self.coordinator(principal, request.project_id, request.coordinator_epoch,
+                                 request.action, target["agent_id"])
+        self.store.team_access.require_contribute(self.store.raw(target["id"], "run"), principal)
+        grant = (self.nexus_delegation.check(request.project_id, lease["agent_id"],
+                                            request.action, target["agent_id"])
+                 if principal["role"] != "admin" else None)
+        self.retire_controls(principal, request.project_id)
         if target["control_revision"] != request.target_run_revision:
             raise Problem("revision_conflict", 412)
         if target["status"] in TERMINAL:
@@ -1039,6 +1092,7 @@ class Service:
         reserved_claim = None
         if request.replacement_task_id:
             task = self.reference(principal, request.project_id, request.replacement_task_id, "task")
+            self.store.team_access.require_contribute(self.store.raw(task["id"], "task"), principal)
             if task["status"] != "queued" or not task["scope_ids"]:
                 raise Problem("replacement_task_unavailable")
             # Reserve under the administrator-like coordinator service path, without impersonating the target.
@@ -1047,7 +1101,9 @@ class Service:
             **request.model_dump(), "state": "queued", "target_agent_id": target["agent_id"],
             "issuer_agent_id": lease["agent_id"], "lease_id": lease["id"],
             "reserved_claim_id": reserved_claim["id"] if reserved_claim else None,
-            "expires_at": min(lease["expires_at"], time.time() + 120), "policy_version": 1,
+            "delegation": ({"grant_id": grant["id"], "revision": grant["revision"]} if grant else None),
+            "expires_at": min(lease["expires_at"], time.time() + 120,
+                              grant["expires_at"] if grant else lease["expires_at"]), "policy_version": 1,
         })
 
     def retire_controls(self, principal, project):
@@ -1055,18 +1111,36 @@ class Service:
         for control in self.store.list("control", project, principal, 1000):
             if control["state"] not in ("queued", "acknowledged", "applying"):
                 continue
-            if lease and control["lease_id"] == lease["id"] and control["expires_at"] > time.time():
+            authorized = True
+            issuer = self.store.db.execute("SELECT * FROM principals WHERE id=?",
+                                           (self.store.raw(control["id"])["owner"],)).fetchone()
+            if issuer is None or (issuer["role"] != "admin" and
+                    (not issuer["coordinator"] or issuer["agent"] != control["issuer_agent_id"]
+                     or issuer["project"] != project)):
+                authorized = False
+            elif issuer["role"] != "admin" and getattr(self, "nexus_delegation", None):
+                try:
+                    self.nexus_delegation.check_control(control)
+                except Problem:
+                    authorized = False
+            if authorized:
+                try:
+                    self.store.team_access.require_contribute(self.store.raw(control["id"]), dict(issuer))
+                except Problem:
+                    authorized = False
+            if authorized and lease and control["lease_id"] == lease["id"] and control["expires_at"] > time.time():
                 continue
             control["state"] = ("outcome_unknown" if control["state"] == "applying" else
                                 "expired" if control["expires_at"] <= time.time() else "superseded")
             row = self.store.raw(control["id"])
             self.store.save("control", project, row["owner"], control)
-            if control["reserved_claim_id"]:
+            if control["reserved_claim_id"] and control["state"] != "outcome_unknown":
                 claim = self.store.raw(control["reserved_claim_id"])
                 body = json.loads(claim["body"])
                 if body["state"] == "reserved":
                     body["state"] = "released"
-                    self.store.save("work_claim", project, claim["owner"], body)
+                    with self.store.acting_as(None):
+                        self.store.save("work_claim", project, claim["owner"], body)
 
     def reserve_replacement(self, principal, target, task):
         for claim in self.active_claims(principal, target["project_id"]):
@@ -1087,11 +1161,23 @@ class Service:
 
     def live_control(self, principal, control_id):
         control = self.store.get(control_id, principal, "control")
+        if control["state"] not in ("queued", "acknowledged", "applying"):
+            raise Problem("stale_control")
         self.run(principal, control["target_run_id"])
         lease = self.lease(principal, control["project_id"])
         if (not lease or lease["id"] != control["lease_id"] or
                 lease["coordinator_epoch"] != control["coordinator_epoch"] or control["expires_at"] <= time.time()):
             raise Problem("stale_control")
+        issuer = self.store.db.execute("SELECT * FROM principals WHERE id=?",
+                                       (self.store.raw(control_id)["owner"],)).fetchone()
+        if issuer is None or (issuer["role"] != "admin" and
+                              (not issuer["coordinator"] or issuer["agent"] != lease["agent_id"]
+                               or issuer["project"] != control["project_id"])):
+            raise Problem("stale_control")
+        if issuer["role"] != "admin" and getattr(self, "nexus_delegation", None):
+            self.nexus_delegation.check_control(control)
+        self.store.team_access.require_contribute(self.store.raw(control_id), dict(issuer))
+        self.store.team_access.require_contribute(self.store.raw(control["target_run_id"]), principal)
         target = self.run(principal, control["target_run_id"])
         if target["control_revision"] != control["target_run_revision"]:
             raise Problem("revision_conflict", 412)

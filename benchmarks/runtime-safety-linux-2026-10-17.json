@@ -1,0 +1,116 @@
+{
+  "date": "2026-10-17",
+  "authorization": "Default Docker restrictions only; no security exceptions or privileged containers",
+  "scope": "Synthetic local testing; no live vendor calls",
+  "image": "hivemind-runtime-tests:2026-10-17",
+  "image_id": "sha256:a678e06c368a0f70b5ddc7757c7fc4b4cb7d7748aabe939fbc3e241b0cd2dc3a",
+  "python": "3.13.16",
+  "bubblewrap": "0.8.0",
+  "wsl": {
+    "distribution": "Ubuntu",
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "host_uid": 1000,
+    "test_setup": "Extracted image under /tmp; unprivileged private user/mount namespace only; Python and loader cache mounted at expected paths inside that namespace, not installed on host",
+    "tests": {
+      "passed": 388,
+      "skipped": 9,
+      "failed": 0,
+      "elapsed_seconds": 63.99,
+      "matrix": "19 modules from runtime-safety-results-2026-10-17.json plus tests/test_linux_runtime_deployment.py",
+      "skip_reasons": {
+        "windows_job_specific_checks": 3,
+        "missing_optional_omp_bun_typescript_tools": 3,
+        "missing_optional_node": 1,
+        "non_linux_refusal_branch": 1,
+        "unavailable_sandbox_refusal_branch_on_working_host": 1
+      }
+    },
+    "real_checks_passed": [
+      "Bubblewrap filesystem enforcement",
+      "Sandboxed execution and direct-network denial",
+      "Distinct private network namespace",
+      "Hidden unbound host file",
+      "Allowed local Hivemind gateway request",
+      "Denied metadata destination",
+      "Denied direct host-loopback access",
+      "Workspace/session write permissions and protected path write denial",
+      "Isolated exact-input native JSON verification, including invalid JSON rejection",
+      "Default cgroup without private delegation refuses"
+    ],
+    "unprivileged_host_probe": {
+      "uid": 1000,
+      "filesystem": {
+        "status": "passed",
+        "detail": "sandboxed command ran and an unbound host path was invisible",
+        "checked_at": 1792266803.3905442
+      },
+      "network": {
+        "status": "passed",
+        "detail": "Filesystem and network namespace probe passed",
+        "network_isolated": true,
+        "checked_at": 1792266803.4360132
+      },
+      "default_cgroup": {
+        "ready": false,
+        "writable": false,
+        "reason": "Cgroup delegation must be private and owned by this service"
+      }
+    }
+  },
+  "docker": {
+    "privileged": false,
+    "security_exceptions": false,
+    "network": "none",
+    "uid": 1000,
+    "initial_positive_sandbox_suite": {
+      "passed": 139,
+      "skipped": 2,
+      "failed": 3,
+      "blocker": "bubblewrap: No permissions to create new namespace"
+    },
+    "broader_regression_attempt": {
+      "status": "incomplete_timeout",
+      "timeout_seconds": 240,
+      "claimed_pass": false,
+      "cleanup": "Owned test container explicitly stopped"
+    },
+    "final_real_refusal_checks": {
+      "passed": 3,
+      "skipped": 1,
+      "failed": 0,
+      "elapsed_seconds": 0.56,
+      "skip": "Positive isolated native verification requires real namespace proof"
+    },
+    "filesystem_probe": {
+      "status": "failed",
+      "checked_at": 1792267046.5304003,
+      "reason": "No permissions to create new namespace"
+    },
+    "network_probe": {
+      "status": "failed",
+      "network_isolated": false,
+      "checked_at": 1792267046.5325942
+    },
+    "default_cgroup": {
+      "ready": false,
+      "writable": false,
+      "reason": "Cgroup delegation must be private and owned by this service"
+    },
+    "remaining_test_containers_running": 0
+  },
+  "resolved_test_issues": [
+    "Corrected real sandbox test paths to use the actual workspace cwd and absolute session/config mounts",
+    "Replaced watcher zero-timeout scheduling assumption with explicit thread synchronization",
+    "Installed pinned tokenizers 0.23.3 in disposable image for test parity; no model downloaded"
+  ],
+  "windows_targeted_regression": {"passed": 31, "skipped": 7},
+  "scoped_ruff": "passed",
+  "shell_syntax": "passed",
+  "still_unvalidated": [
+    "Real cgroup admission and whole-tree setsid cleanup",
+    "Production protected service deployment and service-crash cleanup",
+    "Live authenticated vendor MCP enrollment",
+    "Live interrupted vendor continuation"
+  ],
+  "historical_evidence_only": "Probe receipts are expired measurements, not reusable launch authorization"
+}

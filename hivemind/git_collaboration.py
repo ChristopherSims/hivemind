@@ -131,6 +131,9 @@ class GitCollaboration:
         self._executable = None
 
     def _run(self, directory, *args, data=None, allowed=(0,), timeout=20):
+        guard = getattr(self, "isolation_guard", None)
+        if guard is not None:
+            guard.check()
         env = os.environ.copy()
         for name in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
             env.pop(name, None)
@@ -625,59 +628,59 @@ def install(app, service, principal, command, envelope, checks=None, require_os_
     app.state.git_collaboration = domain
     service.git_collaboration = domain
 
-    @app.post("/v0.1/projects/{project_id}/git:initialize")
+    @app.post("/v1/projects/{project_id}/git:initialize")
     async def initialize(project_id: str, p=Depends(principal), idempotency_key: str | None = Header(None)):
         return command(p, "git-initialize:" + project_id, idempotency_key, {},
                        lambda: domain.initialize(p, project_id))
 
-    @app.post("/v0.1/git-workspaces")
+    @app.post("/v1/git-workspaces")
     async def workspace(body: GitWorkspaceCreate, p=Depends(principal), idempotency_key: str | None = Header(None)):
         return command(p, "git-workspace", idempotency_key, body, lambda: domain.workspace(p, body))
 
-    @app.get("/v0.1/projects/{project_id}/git")
+    @app.get("/v1/projects/{project_id}/git")
     async def repository(project_id: str, p=Depends(principal)):
         repo = domain._ready(p, project_id)
         return envelope({"project_id": project_id, "protected_branch": "main",
                          "main_oid": domain._ref(repo, "refs/heads/main"), "transport": "local-only"})
 
-    @app.get("/v0.1/git-workspaces/{identity}")
+    @app.get("/v1/git-workspaces/{identity}")
     async def workspace_status(identity: str, p=Depends(principal)):
         body, path, _ = domain._workspace(p, identity)
         return envelope({**body, "observed_head_oid": domain._ref(path, "HEAD"),
                          "dirty": bool(domain._git(path, "status", "--porcelain"))})
 
-    @app.post("/v0.1/git-workspaces/{identity}:commit")
+    @app.post("/v1/git-workspaces/{identity}:commit")
     async def commit(identity: str, body: GitCommit, p=Depends(principal),
                      idempotency_key: str | None = Header(None)):
         return command(p, "git-commit:" + identity, idempotency_key, body, lambda: domain.commit(p, identity, body))
 
-    @app.post("/v0.1/git-workspaces/{identity}:push")
+    @app.post("/v1/git-workspaces/{identity}:push")
     async def push(identity: str, body: GitPush, p=Depends(principal),
                    idempotency_key: str | None = Header(None)):
         return command(p, "git-push:" + identity, idempotency_key, body, lambda: domain.push(p, identity, body))
 
-    @app.post("/v0.1/git-workspaces/{identity}:fetch")
+    @app.post("/v1/git-workspaces/{identity}:fetch")
     async def fetch(identity: str, body: GitWorkspaceFetch, p=Depends(principal),
                     idempotency_key: str | None = Header(None)):
         return command(p, "git-fetch:" + identity, idempotency_key, body,
                        lambda: domain.fetch_workspace(p, identity, body))
 
-    @app.post("/v0.1/git-workspaces/{identity}:reconcile")
+    @app.post("/v1/git-workspaces/{identity}:reconcile")
     async def sync(identity: str, body: GitWorkspaceReconcile, p=Depends(principal),
                    idempotency_key: str | None = Header(None)):
         return command(p, "git-workspace-sync:" + identity, idempotency_key, body,
                        lambda: domain.sync_workspace(p, identity, body))
 
-    @app.post("/v0.1/merge-requests")
+    @app.post("/v1/merge-requests")
     async def submit(body: MergeRequestCreate, p=Depends(principal), idempotency_key: str | None = Header(None)):
         return command(p, "git-submit", idempotency_key, body, lambda: domain.submit(p, body))
 
-    @app.get("/v0.1/merge-requests")
+    @app.get("/v1/merge-requests")
     async def requests(project_id: str, p=Depends(principal)):
         service.project_access(p, project_id)
         return envelope(service.store.list("merge_request", project_id, p, 1000))
 
-    @app.get("/v0.1/projects/{project_id}/git:audit")
+    @app.get("/v1/projects/{project_id}/git:audit")
     async def audit(project_id: str, limit: int = Query(100, ge=1, le=500), p=Depends(principal)):
         domain._ready(p, project_id)
         with Journal(domain.root / "audit.sqlite3") as journal:
@@ -687,26 +690,26 @@ def install(app, service, principal, command, envelope, checks=None, require_os_
         return envelope([{"id": row["checkpoint_id"], "action": row["label"],
                           "at": row["created_at"], "data": json.loads(row["metadata"])} for row in rows])
 
-    @app.get("/v0.1/merge-requests/{identity}")
+    @app.get("/v1/merge-requests/{identity}")
     async def request(identity: str, p=Depends(principal)):
         return envelope(service.store.get(identity, p, "merge_request"))
 
-    @app.post("/v0.1/merge-requests/{identity}:review")
+    @app.post("/v1/merge-requests/{identity}:review")
     async def review(identity: str, body: MergeRequestReview, p=Depends(principal),
                      idempotency_key: str | None = Header(None)):
         return command(p, "git-review:" + identity, idempotency_key, body, lambda: domain.review(p, identity, body))
 
-    @app.post("/v0.1/merge-requests/{identity}:check")
+    @app.post("/v1/merge-requests/{identity}:check")
     async def check(identity: str, body: MergeRequestCheck, p=Depends(principal),
                     idempotency_key: str | None = Header(None)):
         return command(p, "git-check:" + identity, idempotency_key, body, lambda: domain.check(p, identity, body))
 
-    @app.post("/v0.1/merge-requests/{identity}:merge")
+    @app.post("/v1/merge-requests/{identity}:merge")
     async def merge(identity: str, body: MergeRequestMerge, p=Depends(principal),
                     idempotency_key: str | None = Header(None)):
         return command(p, "git-merge:" + identity, idempotency_key, body, lambda: domain.merge(p, identity, body))
 
-    @app.post("/v0.1/merge-requests/{identity}:reconcile")
+    @app.post("/v1/merge-requests/{identity}:reconcile")
     async def reconcile(identity: str, body: GitReconcile, p=Depends(principal),
                         idempotency_key: str | None = Header(None)):
         return command(p, "git-reconcile:" + identity, idempotency_key, body,

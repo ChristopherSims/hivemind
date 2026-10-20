@@ -7,6 +7,7 @@ import threading
 import time
 import uuid
 from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -39,21 +40,67 @@ class Problem(Exception):
         self.status = status
 
 
+# Durable offline restore-hold files at a restored store root. The sidecar is
+# written by coordinated_operations at restore time; the staged release intent
+# is owned by hivemind.restore_release. Names are duplicated here (rather than
+# imported) to avoid an import cycle.
+RESTORE_HOLD_SIDECAR = "restore-hold.json"
+RESTORE_RELEASE_INTENT = ".restore-release-intent.json"
+
+
 class Store:
     def __init__(self, directory):
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
         self.lock = threading.RLock()
+        self._commit_listeners = {}
+        self._changed_projects = None
+        self.commit_listener_failures = 0
         self.memory_freshness_filter = None
+        self.memory_provider_result_filter = None
+        self._actor = ContextVar("canonical_actor", default=None)
+        # Durable restore-hold guard, BEFORE opening (which would create) the
+        # database: a leftover staged release intent or the sidecar alone (meta
+        # marker possibly already removed by a partial release) both mean the
+        # hold state is unresolved and this store must never serve. The exact
+        # meta-row check below is preserved unchanged for the normal case.
+        if os.path.lexists(self.directory / RESTORE_RELEASE_INTENT):
+            raise Problem("restore_release_incomplete", 409)
+        if os.path.lexists(self.directory / RESTORE_HOLD_SIDECAR):
+            raise Problem("restore_hold_active", 409)
         self.db = sqlite3.connect(self.directory / "canonical.sqlite", check_same_thread=False, isolation_level=None)
         self.db.row_factory = sqlite3.Row
         self.db.execute("PRAGMA journal_mode=WAL")
+        self.db.execute("PRAGMA synchronous=FULL")
         self.db.execute("PRAGMA foreign_keys=ON")
         self.db.execute("PRAGMA busy_timeout=5000")
         self.db.enable_load_extension(True)
         sqlite_vec.load(self.db)
         self.db.enable_load_extension(False)
+        # Restored snapshots carry a restore_hold marker: their old Nexus/delivery
+        # lease authority was invalidated offline and must never serve again until an
+        # operator explicitly releases the hold after fresh verification.
+        marker_table = self.db.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='meta'").fetchone()
+        if marker_table and self.db.execute(
+                "SELECT 1 FROM meta WHERE key='restore_hold'").fetchone():
+            self.db.close()
+            raise Problem("restore_hold_active", 409)
+        try:
+            self._initialize_schema()
+        except BaseException:
+            self.db.close()
+            raise
+        from .team_access import TeamAccess
+        self.team_access = TeamAccess(self)
+
+    def _initialize_schema(self):
+        existing = self.db.execute(
+            "SELECT 1 FROM sqlite_master WHERE name='migrations' AND type='table'").fetchone()
+        if existing and (self.db.execute("SELECT max(version) FROM migrations").fetchone()[0] or 0) > 6:
+            raise Problem("schema_version_unsupported")
         self.db.executescript("""
+        BEGIN IMMEDIATE;
         CREATE TABLE IF NOT EXISTS migrations(version INTEGER PRIMARY KEY);
         INSERT OR IGNORE INTO migrations VALUES(1);
         CREATE TABLE IF NOT EXISTS projects(id TEXT PRIMARY KEY, title TEXT NOT NULL, seq INTEGER NOT NULL DEFAULT 0,
@@ -80,6 +127,7 @@ class Store:
         CREATE TABLE IF NOT EXISTS sessions(hash TEXT PRIMARY KEY, principal TEXT REFERENCES principals(id),
           csrf_hash TEXT, expires REAL);
         CREATE TABLE IF NOT EXISTS audit(id TEXT PRIMARY KEY, principal TEXT, operation TEXT, resource TEXT, time TEXT);
+        CREATE TABLE IF NOT EXISTS run_task_access(run TEXT,task TEXT,PRIMARY KEY(run,task));
         CREATE TABLE IF NOT EXISTS conversation_reads(principal TEXT REFERENCES principals(id),
           project TEXT REFERENCES projects(id), message TEXT REFERENCES resources(id), read_at TEXT NOT NULL,
           PRIMARY KEY(principal,message));
@@ -99,19 +147,70 @@ class Store:
         self.db.execute("INSERT OR IGNORE INTO migrations VALUES(2)")
         self.db.execute("INSERT OR IGNORE INTO migrations VALUES(3)")
         self.db.execute("INSERT OR IGNORE INTO migrations VALUES(4)")
+        # Retained run observations/events can outlive an assignment. A later
+        # move to a public task must not disclose observations from a private one.
+        self.db.execute("""
+            INSERT OR IGNORE INTO run_task_access(run,task)
+            SELECT v.id,json_extract(v.body,'$.task_id') FROM versions v
+            JOIN resources r ON r.id=v.id WHERE r.kind='run'
+            AND json_type(v.body,'$.task_id')='text'
+        """)
+        self.db.execute("INSERT OR IGNORE INTO migrations VALUES(5)")
+        from .projection_rebuild import install
+        install(self.db)
+        self.db.execute("INSERT OR IGNORE INTO migrations VALUES(6)")
+        self.db.execute("COMMIT")
+
+    @contextmanager
+    def acting_as(self, principal):
+        token = self._actor.set(principal)
+        try:
+            yield
+        finally:
+            self._actor.reset(token)
 
     @contextmanager
     def transaction(self):
+        changes, listeners = {}, ()
         with self.lock:
             self.db.execute("BEGIN IMMEDIATE")
+            self._changed_projects = set()
             try:
                 yield
+                changes = {project: self.project(project)["seq"]
+                           for project in self._changed_projects}
                 self.db.execute("COMMIT")
+                listeners = tuple(self._commit_listeners.values())
             except BaseException:
-                self.db.execute("ROLLBACK")
+                if self.db.in_transaction:
+                    self.db.execute("ROLLBACK")
                 raise
+            finally:
+                self._changed_projects = None
+        # Nonblocking wake-ups only, after releasing this transaction's lock scope.
+        # Durable canonical cursors remain authoritative if a listener misses a signal.
+        if changes:
+            for listener in listeners:
+                try:
+                    listener(dict(changes))
+                except Exception:
+                    self.commit_listener_failures += 1
+
+    def subscribe_commits(self, listener):
+        """Subscribe to committed project-sequence invalidations, never message content."""
+        if not callable(listener):
+            raise ValueError("Commit listener must be callable")
+        identity = uid("listener")
+        with self.lock:
+            self._commit_listeners[identity] = listener
+
+        def unsubscribe():
+            with self.lock:
+                self._commit_listeners.pop(identity, None)
+        return unsubscribe
 
     def close(self):
+        self._commit_listeners.clear()
         self.db.close()
 
     def project(self, project):
@@ -122,6 +221,8 @@ class Store:
 
     def tick(self, project):
         self.db.execute("UPDATE projects SET seq=seq+1 WHERE id=?", (project,))
+        if self._changed_projects is not None:
+            self._changed_projects.add(project)
         return self.project(project)["seq"]
 
     def raw(self, resource_id, kind=None):
@@ -133,8 +234,12 @@ class Store:
     def visible(self, row, principal):
         if principal["role"] != "admin" and row["project"] != principal["project"]:
             return False
+        if row["kind"] == "nexus_grant":
+            return principal["role"] in ("admin", "human")
         private = row["private_agent"]
         if private and principal["role"] != "admin" and principal["agent"] != private:
+            return False
+        if not self.team_access.allowed(row, principal):
             return False
         if row["kind"] == "message":
             body = json.loads(row["body"])
@@ -250,12 +355,42 @@ class Store:
         return results
 
     def save(self, kind, project, owner, body, private=None, expected=None, seq=None):
+        with self.lock:
+            if self.db.in_transaction:
+                return self._save(kind, project, owner, body, private, expected, seq)
+        with self.transaction():
+            return self._save(kind, project, owner, body, private, expected, seq)
+
+    def _save(self, kind, project, owner, body, private=None, expected=None, seq=None):
+        if self._changed_projects is not None:
+            self._changed_projects.add(project)
         resource_id = body["id"]
         old = self.db.execute("SELECT * FROM resources WHERE id=?", (resource_id,)).fetchone()
         if old and old["deleted"]:
             raise Problem("resource_deleted")
         if expected is not None and (not old or old["revision"] != expected):
             raise Problem("revision_conflict", 412)
+        actor = self._actor.get()
+        if actor is not None and kind in (
+                "board", "board_post", "artifact", "memory", "memory_proposal", "memory_dispute",
+                "task", "team", "resource_access", "run", "work_claim"):
+            candidate = {"id": resource_id, "kind": kind, "project": project, "private_agent": private,
+                         "body": canonical(body)}
+            if old:
+                self.team_access.require_contribute(dict(old), actor)
+                candidate["private_agent"] = old["private_agent"]
+            self.team_access.require_contribute(candidate, actor)
+        if kind == "run":
+            tasks = {body.get("task_id")}
+            if old:
+                tasks.add(json.loads(old["body"]).get("task_id"))
+            tasks.discard(None)
+            existing = {row["task"] for row in self.db.execute(
+                "SELECT task FROM run_task_access WHERE run=?", (resource_id,))}
+            if tasks - existing and len(existing | tasks) > 64:
+                raise Problem("run_access_source_limit")
+            for task in tasks:
+                self.db.execute("INSERT OR IGNORE INTO run_task_access VALUES(?,?)", (resource_id, task))
         revision = old["revision"] + 1 if old else 1
         if kind in ("message", "board_post"):
             first = self.db.execute("SELECT body FROM versions WHERE id=? ORDER BY revision LIMIT 1",
@@ -282,10 +417,18 @@ class Store:
         return body
 
     def delete(self, resource_id, principal, expected):
+        with self.lock:
+            if self.db.in_transaction:
+                return self._delete(resource_id, principal, expected)
+        with self.transaction():
+            return self._delete(resource_id, principal, expected)
+
+    def _delete(self, resource_id, principal, expected):
         row = self.raw(resource_id)
         # Owners may erase inactive/invalidated memory without reading its content.
         if not self.visible(row, principal):
             raise Problem("not_found", 404)
+        self.team_access.require_contribute(row, principal)
         if principal["role"] != "admin" and row["owner"] != principal["id"]:
             raise Problem("forbidden", 403)
         if expected != row["revision"]:
@@ -316,13 +459,23 @@ class Store:
                     continue
                 memory = json.loads(dependent["body"])
                 memory.update(status="disputed", invalidation_reason="source_deleted")
-                self.save("memory", dependent["project"], dependent["owner"], memory,
-                          private=dependent["private_agent"])
+                # Canonical invalidation is a consequence of deletion, not an
+                # opportunity for the caller to edit the dependent memory.
+                with self.acting_as(None):
+                    self.save("memory", dependent["project"], dependent["owner"], memory,
+                              private=dependent["private_agent"])
                 invalidated.add(dependent["id"])
                 pending.append(dependent["id"])
         self.db.execute("DELETE FROM relations WHERE source=? OR target=?", (resource_id, resource_id))
 
     def relate(self, project, source, target, kind):
+        with self.lock:
+            if self.db.in_transaction:
+                return self._relate(project, source, target, kind)
+        with self.transaction():
+            return self._relate(project, source, target, kind)
+
+    def _relate(self, project, source, target, kind):
         self.db.execute("INSERT OR IGNORE INTO relations VALUES(?,?,?,?)", (project, source, target, kind))
         row = self.raw(source)
         # New relationship facts must reproject a source even if its node job already completed.

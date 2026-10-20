@@ -138,6 +138,74 @@ class OmpTransport:
         pass
 
 
+def test_omp_structured_public_text_usage_and_explicit_no_tools(tmp_path):
+    class PublicTextTransport(OmpTransport):
+        def send(self, request):
+            data = {
+                "get_last_assistant_text": {"text": '{"handled":true,"reply_text":"4"}'},
+                "get_session_stats": {"tokens": {"input": 100, "output": 12}, "cost": .00002,
+                                      "toolCalls": 0, "toolResults": 0},
+            }.get(request["type"])
+            if data is None:
+                return super().send(request)
+            self.messages.append(request)
+            self.frames.put({"type": "response", "id": request["id"], "success": True, "data": data})
+
+    runtime = OhMyPiRuntime({**options(tmp_path), "enabled": True, "allow_model_calls": True,
+                            "no_tools": True, "result_contract": "message", "collect_usage": True},
+                           transport_factory=PublicTextTransport)
+    try:
+        outcome = runtime.execute(*assignment(), None)
+        assert outcome["message_result"] == {"handled": True, "reply_text": "4"}
+        assert runtime.state["usage"]["cost"] == .00002
+        assert "--no-tools" in runtime.transport.argv and "--tools" not in runtime.transport.argv
+        assert "get_messages" not in [item["type"] for item in runtime.transport.messages]
+        assert "reply_text" not in runtime.path.read_text()
+    finally:
+        runtime.close()
+
+
+def test_factory_explicit_executable_forwarding(tmp_path):
+    runtime = FactoryRuntime({**options(tmp_path), "enabled": True, "allow_model_calls": True,
+                              "executable": str(tmp_path / "droid.exe")}, sdk=SDK)
+    try:
+        runtime.execute(*assignment(), None)
+        assert Session.created[-1].kwargs["runtime"]["executable"] == str(tmp_path / "droid.exe")
+    finally:
+        runtime.close()
+        runtime.close()  # Reopening workflows can close before harness-wide cleanup.
+
+
+def test_factory_resume_workspace_mismatch_fails_before_a_turn(tmp_path):
+    config = {**options(tmp_path), "enabled": True, "allow_model_calls": True}
+    first = FactoryRuntime(config, sdk=SDK)
+    first.execute(*assignment(), None)
+    first.close()
+    called = []
+
+    class WrongWorkspaceSession(Session):
+        @classmethod
+        def resume(cls, session_id, **kwargs):
+            value = cls(**kwargs)
+            value.id = session_id
+            value.cwd = tmp_path
+            return value
+
+        def stream(self, *args, **kwargs):
+            called.append(True)
+            return super().stream(*args, **kwargs)
+
+    local_sdk = SimpleNamespace(**{**vars(SDK), "Session": WrongWorkspaceSession})
+    resumed = FactoryRuntime(config, sdk=local_sdk)
+    task, context = assignment()
+    try:
+        with pytest.raises(PermissionError, match="workspace mismatch"):
+            resumed.execute({**task, "id": "next"}, {**context, "execution_id": "next"}, None)
+        assert called == [] and resumed.state["outcome"] == "unknown"
+    finally:
+        resumed.close()
+
+
 def test_omp_uses_documented_rpc_and_restricts_tools(tmp_path):
     runtime = OhMyPiRuntime({**options(tmp_path), "enabled": True, "allow_model_calls": True},
                             transport_factory=OmpTransport)

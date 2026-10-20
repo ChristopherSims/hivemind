@@ -11,6 +11,18 @@ export type ContextRequest = {
   requester_run_id?: string; target_tokenizer?: string; min_ingestion_seq?: number;
 };
 export type Envelope<T> = {protocol: "hivemind"; protocol_version: "0.1.0"; data: T};
+export type ActivityFrame = {id?: string; event: "snapshot" | "activity" | "resync" | "shutdown";
+  data: Record<string, unknown>};
+export type OperationDescription = {
+  id: string; method: string; path: string; summary: string; description: string;
+  context: string; authority: string;
+  inputs: {path_parameters: string[]; query_parameters: string[];
+    body_schema: string | null; schema_document: string};
+  outputs: string; side_effects: string; retry_safety: string; limits: string; untrusted_data: string;
+};
+export type OperationContext = {schema_version: number; digest: string;
+  operations: OperationDescription[]; feature_descriptions: Record<string, unknown>;
+  runtime_descriptions: Record<string, unknown>; rules: string[]};
 export type MemoryVersionProposal = {
   expected_revision: number; title: string;
   content: {media_type: "text/plain" | "text/markdown"; text: string};
@@ -43,10 +55,192 @@ export type TaskCheckpoint = {expected_revision: number; run_id: string; executi
   checkpoint_id: string; status: "running" | "paused" | "completed" | "failed";
   progress: number; summary: string; evidence_refs?: {kind: "board_post" | "artifact"; id: string; revision?: number}[]};
 
+export type AccessRules = {public_read?: boolean; public_contribute?: boolean;
+  reader_agent_ids?: string[]; contributor_agent_ids?: string[];
+  reader_team_ids?: string[]; contributor_team_ids?: string[]};
+export type TeamCreate = {project_id: string; display_name: string; member_agent_ids?: string[]};
+export type MemoryProvider = "mem0" | "langmem" | "letta";
+export type ProviderImport = {result_id: string; item_index: number; content_sha256: string; title: string;
+  approve_import: true; evidence_refs: {kind: string; id: string; revision?: number}[]};
+
 export class Hivemind {
   constructor(private baseURL: string, private token: string) {}
+  retrieveProviderMemories(projectId: string, request: {adapter: MemoryProvider; query?: string; limit?: number}, key: string) {
+    return this.request("POST", `projects/${encodeURIComponent(projectId)}/memory-providers:retrieve`, request, key);
+  }
+  providerMemoryResult(resultId: string) {
+    return this.request("GET", `memory-provider-results/${encodeURIComponent(resultId)}`);
+  }
+  importProviderMemory(projectId: string, request: ProviderImport, key: string) {
+    return this.request("POST", `projects/${encodeURIComponent(projectId)}/memory-providers:import`, request, key);
+  }
+  reconcileProviderMemories(projectId: string, adapter: MemoryProvider) {
+    return this.request("POST", `projects/${encodeURIComponent(projectId)}/memory-providers:reconcile`, {adapter});
+  }
+  providerMemoryStatus(projectId: string) {
+    return this.request("GET", `projects/${encodeURIComponent(projectId)}/memory-providers:status`);
+  }
+  createTeam(request: TeamCreate, key: string) {
+    return this.request("POST", "teams", request, key);
+  }
+  teams(projectId: string) {
+    return this.request("GET", `projects/${encodeURIComponent(projectId)}/teams`);
+  }
+  updateTeam(teamId: string, request: TeamCreate & {expected_revision: number; active?: boolean}, key: string) {
+    return this.request("PATCH", `teams/${encodeURIComponent(teamId)}`, request, key);
+  }
+  createBoard(request: {project_id: string; title: string; access?: AccessRules}, key: string) {
+    return this.request("POST", "boards", request, key);
+  }
+  resourceAccess(resourceId: string) {
+    return this.request("GET", `resources/${encodeURIComponent(resourceId)}/access`);
+  }
+  setResourceAccess(resourceId: string, request: AccessRules & {expected_revision?: number | null}, key: string) {
+    return this.request("PUT", `resources/${encodeURIComponent(resourceId)}/access`, request, key);
+  }
+  createNexusGrant(request: {project_id: string; nexus_agent_id: string;
+    target_agent_ids: string[]; actions: ("steer" | "pause" | "resume" | "cancel" | "assign_task" | "monitor")[];
+    ttl_seconds?: number}, key: string) {
+    return this.request("POST", "nexus-grants", request, key);
+  }
+  nexusGrants(projectId: string) {
+    return this.request("GET", `projects/${encodeURIComponent(projectId)}/nexus-grants`);
+  }
+  revokeNexusGrant(grantId: string, expectedRevision: number, key: string) {
+    return this.request("POST", `nexus-grants/${encodeURIComponent(grantId)}:revoke`,
+      {expected_revision: expectedRevision}, key);
+  }
+  mirrorMemory(memoryId: string, adapter: "mem0" | "langmem" | "letta", expectedRevision: number, key: string) {
+    return this.request("POST", `memories/${encodeURIComponent(memoryId)}:mirror`,
+      {adapter, expected_revision: expectedRevision}, key);
+  }
+  createWorker(projectId: string, request: Record<string, unknown>, key: string) {
+    return this.request("POST", `projects/${encodeURIComponent(projectId)}/workers`, request, key);
+  }
+  workerDefaults(projectId: string) {
+    return this.request("GET", `projects/${encodeURIComponent(projectId)}/workers:defaults`);
+  }
+  workerStatus(workerId: string) {
+    return this.request("GET", `workers/${encodeURIComponent(workerId)}`);
+  }
+  startWorker(workerId: string, request: Record<string, unknown>) {
+    return this.request("POST", `workers/${encodeURIComponent(workerId)}:start`, request);
+  }
+  stopWorker(workerId: string, request: Record<string, unknown>) {
+    return this.request("POST", `workers/${encodeURIComponent(workerId)}:stop`, request);
+  }
+  /** A readiness snapshot is not an execution permit. */
+  blockedTaskStatus(projectId: string, taskId: string, runId?: string, agentId?: string) {
+    const query = new URLSearchParams();
+    if (runId !== undefined) query.set("run_id", runId);
+    if (agentId !== undefined) query.set("agent_id", agentId);
+    return this.request("GET", `projects/${encodeURIComponent(projectId)}/tasks/${
+      encodeURIComponent(taskId)}/blocked-status${query.size ? `?${query}` : ""}`);
+  }
+  requestTaskResolution(projectId: string, request: Record<string, unknown>, key?: string) {
+    return this.request("POST", `projects/${encodeURIComponent(projectId)}/blocked-tasks:request`,
+      request, key);
+  }
+  taskResolutionRequests(projectId: string, taskId?: string) {
+    return this.request("GET", `projects/${encodeURIComponent(projectId)}/blocked-task-requests${
+      taskId === undefined ? "" : `?task_id=${encodeURIComponent(taskId)}`}`);
+  }
+  taskResolutionRequest(requestId: string) {
+    return this.request("GET", `blocked-task-requests/${encodeURIComponent(requestId)}`);
+  }
+  acknowledgeTaskResolution(requestId: string, request: Record<string, unknown>, key?: string) {
+    return this.request("POST", `blocked-task-requests/${encodeURIComponent(requestId)}:acknowledge`,
+      request, key);
+  }
+  closeTaskResolution(requestId: string, request: Record<string, unknown>, key?: string) {
+    return this.request("POST", `blocked-task-requests/${encodeURIComponent(requestId)}:resolve`,
+      request, key);
+  }
+  triggerMemoryEvents(projectId: string, bindingKey?: string, key?: string) {
+    return this.request("POST", "memory-events:trigger",
+      {project_id: projectId, binding_key: bindingKey}, key);
+  }
+  memoryEventStatus(projectId: string) {
+    return this.request("GET", `memory-events:status?project_id=${encodeURIComponent(projectId)}`);
+  }
+  memoryEventReviews(projectId: string) {
+    return this.request("GET", `memory-events:reviews?project_id=${encodeURIComponent(projectId)}`);
+  }
+  /** Skip a held intent; this does not permit uncertain computation replay. */
+  releaseMemoryEventHold(projectId: string, fingerprint?: string, key?: string) {
+    return this.request("POST", "memory-events:release", {project_id: projectId, fingerprint}, key);
+  }
+  /** Bounded, cancellable authorized SSE. Persist yielded ids to resume with `after`. */
+  async *subscribeAgentActivity(projectId: string, options: {
+    after?: string; signal?: AbortSignal; readTimeoutMs?: number
+  } = {}): AsyncGenerator<ActivityFrame> {
+    const readTimeout = options.readTimeoutMs ?? 10000;
+    if (!Number.isFinite(readTimeout) || readTimeout < 1000 || readTimeout > 120000)
+      throw new Error("Invalid activity read timeout");
+    const controller = new AbortController();
+    const abort = () => controller.abort();
+    options.signal?.addEventListener("abort", abort, {once: true});
+    if (options.signal?.aborted) abort();
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const query = options.after ? `?after=${encodeURIComponent(options.after)}` : "";
+      timer = setTimeout(abort, readTimeout);
+      const response = await fetch(`${this.baseURL.replace(/\/$/, "")}/v1/projects/${
+        encodeURIComponent(projectId)}/agents:stream${query}`, {
+        headers: {Authorization: `Bearer ${this.token}`, Accept: "text/event-stream"},
+        signal: controller.signal, redirect: "error"});
+      clearTimeout(timer);
+      if (!response.ok || !response.headers.get("content-type")?.startsWith("text/event-stream")
+          || !response.body) throw new Error("Activity subscription rejected");
+      reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8", {fatal: true}), encoder = new TextEncoder();
+      let buffer = "", event = "", id: string | undefined, data: string[] = [], bytes = 0, frames = 0;
+      while (!controller.signal.aborted) {
+        timer = setTimeout(abort, readTimeout);
+        const item = await reader.read();
+        clearTimeout(timer);
+        if (item.done) return;
+        for (let offset = 0; offset < item.value.length; offset += 8192) {
+          buffer += decoder.decode(item.value.subarray(offset, offset + 8192), {stream: true});
+          let end: number;
+          while ((end = buffer.indexOf("\n")) >= 0) {
+            const line = buffer.slice(0, end).replace(/\r$/, "");
+            buffer = buffer.slice(end + 1);
+            bytes += encoder.encode(line).length + 1;
+            if (bytes > 16384) throw new Error("Activity frame exceeds limit");
+            if (!line) {
+              if (data.length) {
+                if (!["snapshot", "activity", "resync", "shutdown"].includes(event) || ++frames > 10000)
+                  throw new Error("Invalid activity frame");
+                const payload: unknown = JSON.parse(data.join("\n"));
+                if (!payload || typeof payload !== "object" || Array.isArray(payload))
+                  throw new Error("Invalid activity frame");
+                if (!Object.keys(payload).length || (["snapshot", "activity"].includes(event)
+                    && (payload as Record<string, unknown>).type !== event))
+                  throw new Error("Invalid activity frame");
+                if (id && !/^(g\d+|s\d+(\.a\d+)?)$/.test(id)) throw new Error("Invalid activity cursor");
+                yield {id, event: event as ActivityFrame["event"], data: payload as Record<string, unknown>};
+              }
+              event = ""; id = undefined; data = []; bytes = 0;
+            } else if (line.startsWith("event:")) event = line.slice(6).trimStart();
+            else if (line.startsWith("id:")) id = line.slice(3).trimStart();
+            else if (line.startsWith("data:")) data.push(line.slice(5).trimStart());
+          }
+          if (encoder.encode(buffer).length + bytes > 16384) throw new Error("Activity frame exceeds limit");
+        }
+      }
+    } catch {
+      if (!options.signal?.aborted) throw new Error("Activity subscription interrupted");
+    } finally {
+      clearTimeout(timer);
+      options.signal?.removeEventListener("abort", abort);
+      controller.abort();
+      if (reader) { await reader.cancel().catch(() => undefined); reader.releaseLock(); }
+    }
+  }
   async request<T>(method: string, path: string, body?: unknown, key?: string): Promise<T> {
-    const response = await fetch(`${this.baseURL.replace(/\/$/, "")}/v0.1/${path}`, {
+    const response = await fetch(`${this.baseURL.replace(/\/$/, "")}/v1/${path}`, {
       method,
       headers: {Authorization: `Bearer ${this.token}`, "Content-Type": "application/json",
         ...(method !== "GET" ? {"Idempotency-Key": key ?? crypto.randomUUID()} : {})},
@@ -56,7 +250,16 @@ export class Hivemind {
     return ((await response.json()) as Envelope<T>).data;
   }
   context(request: ContextRequest) { return this.request("POST", "context:query", request); }
+  /** Describe purpose/schema/authority/side effects/retry rules. Context is not a permission grant. */
+  operationContext(operationId?: string) {
+    const query = operationId === undefined ? "" : `?operation_id=${encodeURIComponent(operationId)}`;
+    return this.request<OperationContext>("GET", `tool-context${query}`);
+  }
   assembleContext(request: ContextRequest) { return this.request("POST", "context:assemble", request); }
+  searchPage(request: Record<string, unknown>, cursor?: string) {
+    const body = cursor === undefined ? {...request} : {...request, cursor};
+    return this.request("POST", "retrieval:search-page", body);
+  }
   createTaskPlan(request: Record<string, unknown>, key?: string) {
     return this.request("POST", "task-plans", request, key);
   }
@@ -81,8 +284,63 @@ export class Hivemind {
     return this.request("POST", `merge-requests/${encodeURIComponent(id)}:${action}`, request, key);
   }
   taskPlan(id: string) { return this.request("GET", `task-plans/${encodeURIComponent(id)}`); }
+  createGoal(request: Record<string, unknown>, key?: string) {
+    return this.request("POST", "goals", request, key);
+  }
+  goal(id: string) { return this.request("GET", `goals/${encodeURIComponent(id)}`); }
+  reviseGoal(id: string, request: Record<string, unknown>, key?: string) {
+    return this.request("POST", `goals/${encodeURIComponent(id)}:revise`, request, key);
+  }
+  tickGoal(id: string, request: Record<string, unknown> = {}, key?: string) {
+    return this.request("POST", `goals/${encodeURIComponent(id)}:tick`, request, key);
+  }
+  proposeGoalPlan(id: string, request: Record<string, unknown> = {}, key?: string) {
+    return this.request("POST", `goals/${encodeURIComponent(id)}:propose`, request, key);
+  }
   handoffTask(id: string, request: Record<string, unknown>, key?: string) {
     return this.request("POST", `tasks/${encodeURIComponent(id)}:handoff`, request, key);
+  }
+  offerStructuredHandoff(request: Record<string, unknown>, key?: string) {
+    return this.request("POST", "structured-handoffs", request, key);
+  }
+  structuredHandoff(id: string) {
+    return this.request("GET", `structured-handoffs/${encodeURIComponent(id)}`);
+  }
+  decideStructuredHandoff(id: string, action: "accept" | "reject" | "revoke",
+      request: Record<string, unknown>, key?: string) {
+    return this.request("POST", `structured-handoffs/${encodeURIComponent(id)}:${action}`, request, key);
+  }
+  consumeHandoffContext(request: Record<string, unknown>, key?: string) {
+    return this.request("POST", "structured-handoffs:consume", request, key);
+  }
+  setRoutingDeclaration(id: string, request: Record<string, unknown>, key?: string) {
+    return this.request("POST", `agents/${encodeURIComponent(id)}/routing-declaration`, request, key);
+  }
+  queryRouting(project: string, request: Record<string, unknown>) {
+    return this.request("POST", `projects/${encodeURIComponent(project)}/routing:query`, request);
+  }
+  approveRouting(project: string, request: Record<string, unknown>, key?: string) {
+    return this.request("POST", `projects/${encodeURIComponent(project)}/routing:dispatch`, request, key);
+  }
+  createArtifactContract(request: Record<string, unknown>, key?: string) {
+    return this.request("POST", "artifact-contracts", request, key);
+  }
+  artifactContract(id: string) {
+    return this.request("GET", `artifact-contracts/${encodeURIComponent(id)}`);
+  }
+  artifactContractAction(id: string, action: "revise" | "revoke" | "submit",
+      request: Record<string, unknown>, key?: string) {
+    return this.request("POST", `artifact-contracts/${encodeURIComponent(id)}:${action}`, request, key);
+  }
+  setTaskBudget(project: string, request: Record<string, unknown>, key?: string) {
+    return this.request("POST", `projects/${encodeURIComponent(project)}/budgets`, request, key);
+  }
+  taskBudget(project: string, task: string) {
+    return this.request("GET", `projects/${encodeURIComponent(project)}/budgets/${encodeURIComponent(task)}`);
+  }
+  taskBudgetAction(project: string, action: "reserve" | "settle" | "checkpoint",
+      request: Record<string, unknown>, key?: string) {
+    return this.request("POST", `projects/${encodeURIComponent(project)}/budgets:${action}`, request, key);
   }
   reviewAutomationTick(project: string, limit = 20, key?: string) {
     return this.request("POST", "review-automation:tick", {project_id: project, limit}, key);

@@ -1,0 +1,20 @@
+{
+  "name": "hivemind-capture",
+  "displayName": "Hivemind Capture",
+  "version": "0.2.0",
+  "publisher": "hivemind",
+  "engines": {"vscode": "^1.90.0"},
+  "main": "./extension.js",
+  "activationEvents": ["onCommand:hivemind.startCapture", "onCommand:hivemind.startAcp"],
+  "contributes": {"commands": [
+    {"command": "hivemind.startCapture", "title": "Hivemind: Start Private Capture"},
+    {"command": "hivemind.stopCapture", "title": "Hivemind: Stop Capture"},
+    {"command": "hivemind.startAcp", "title": "Hivemind: Connect ACP Agent"},
+    {"command": "hivemind.promptAcp", "title": "Hivemind: Prompt ACP Agent"},
+    {"command": "hivemind.reconnectAcp", "title": "Hivemind: Reconnect ACP Session"},
+    {"command": "hivemind.cancelAcp", "title": "Hivemind: Cancel ACP Turn"},
+    {"command": "hivemind.stopAcp", "title": "Hivemind: Disconnect ACP Agent"}
+  ]},
+  "scripts": {"test": "node --test test/*.test.js"},
+  "capabilities": {"untrustedWorkspaces": {"supported": false}, "virtualWorkspaces": {"supported": false}}
+}

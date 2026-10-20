@@ -14,11 +14,11 @@ async function login(page: Page) {
 }
 async function seed(request: APIRequestContext, title: string, text: string, fields = {}) {
   const data = fixture(), headers = {Authorization: `Bearer ${data.token}`, "Idempotency-Key": crypto.randomUUID()};
-  const postResponse = await request.post(`/v0.1/boards/${data.board_id}/posts`, {headers, data: {
+  const postResponse = await request.post(`/v1/boards/${data.board_id}/posts`, {headers, data: {
     client_post_id: crypto.randomUUID(), content: {media_type: "text/plain", text}}});
   expect(postResponse.ok()).toBeTruthy();
   const post = (await postResponse.json()).data;
-  const response = await request.post("/v0.1/memories", {headers, data: {
+  const response = await request.post("/v1/memories", {headers, data: {
     project_id: data.project_id, title, content: {media_type: "text/plain", text},
     scope_owner_id: data.project_id, evidence_refs: [{kind: "board_post", id: post.id, revision: post.revision}],
     ...fields}});

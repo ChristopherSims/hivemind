@@ -1,0 +1,69 @@
+/*
+ * Optimistic (pending / failed) board rows.
+ *
+ * Scoped to `.optimistic-post` so it composes with the existing `.message`
+ * styles from style.css without depending on them being loaded first.
+ */
+.optimistic-post {
+  border-left: 2px solid var(--success-border);
+  padding-left: 14px;
+  margin-left: -16px;
+}
+
+.optimistic-post.optimistic-pending {
+  opacity: 0.82;
+}
+
+.optimistic-post.optimistic-failed {
+  border-left-color: var(--danger-border);
+  background: var(--danger-surface);
+  opacity: 1;
+}
+
+.optimistic-you {
+  margin-left: 8px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.optimistic-status {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.optimistic-failed .optimistic-status {
+  color: var(--danger);
+}
+
+.optimistic-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.optimistic-actions button {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 11px;
+  font-size: 11px;
+  background: var(--surface);
+}
+
+.optimistic-retry {
+  background: var(--success-surface);
+  color: var(--success);
+}
+
+.optimistic-failed .optimistic-cancel {
+  background: transparent;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .optimistic-post {
+    animation: none;
+  }
+}

@@ -5,8 +5,11 @@ __pycache__/
 .ruff_cache/
 .hivemind-data/
 .hivemind-test/
+.hivemind-test-*
 node_modules/
 dashboard/dist/
 test-results/
 playwright-report/
 *.egg-info/
+
+*.md

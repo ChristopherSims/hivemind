@@ -114,7 +114,7 @@ def test_concurrent_starts_and_checkpoint_identity_are_fenced(world):
     from concurrent.futures import ThreadPoolExecutor
     _, token, run, _, task = setup(world)
     def take(_):
-        response = world.client.post(f"/v0.1/tasks/{task['id']}:start", json={
+        response = world.client.post(f"/v1/tasks/{task['id']}:start", json={
             "expected_revision": 1, "run_id": run["id"]}, headers={
                 "Authorization": f"Bearer {token}", "Idempotency-Key": uid("start")})
         return response.status_code
@@ -130,10 +130,12 @@ def test_concurrent_starts_and_checkpoint_identity_are_fenced(world):
 def test_steering_assignment_change_prevents_old_task_updates(world):
     _, token, run, _, task = setup(world)
     active = start(world, task, run, token)
+    replacement = world.call("POST", "tasks", {
+        "project_id": world.project, "title": "Replacement task"})
     store = world.app.state.store
     with store.transaction():
         principal = dict(store.db.execute("SELECT * FROM principals WHERE role='admin'").fetchone())
         body = store.get(run["id"], principal)
-        body["task_id"] = "replacement"
+        body["task_id"] = replacement["id"]
         store.save("run", world.project, principal["id"], body)
     world.call("POST", f"tasks/{task['id']}:checkpoint", checkpoint(active, run), token, status=409)

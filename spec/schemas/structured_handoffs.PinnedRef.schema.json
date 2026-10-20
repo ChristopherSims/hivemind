@@ -1,0 +1,43 @@
+{
+  "additionalProperties": false,
+  "description": "A source context reference pinned to an exact current revision.",
+  "properties": {
+    "kind": {
+      "enum": [
+        "agent",
+        "run",
+        "task",
+        "event",
+        "artifact",
+        "board_post",
+        "memory",
+        "scope",
+        "work_claim",
+        "conflict",
+        "control",
+        "decision"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "revision": {
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "kind",
+    "id",
+    "revision"
+  ],
+  "title": "PinnedRef",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

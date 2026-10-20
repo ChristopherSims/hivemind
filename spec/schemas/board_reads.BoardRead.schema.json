@@ -1,0 +1,61 @@
+{
+  "additionalProperties": false,
+  "description": "One explicit read-marking batch. ``post_ids`` is capped at 100.",
+  "properties": {
+    "post_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Post Ids",
+      "type": "array"
+    },
+    "snapshot_cursor": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Snapshot Cursor"
+    },
+    "ignore_unavailable": {
+      "default": false,
+      "title": "Ignore Unavailable",
+      "type": "boolean"
+    },
+    "post_revisions": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "maxProperties": 100,
+          "propertyNames": {
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Post Revisions"
+    }
+  },
+  "required": [
+    "post_ids"
+  ],
+  "title": "BoardRead",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

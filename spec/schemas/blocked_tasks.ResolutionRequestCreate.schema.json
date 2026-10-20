@@ -1,0 +1,122 @@
+{
+  "$defs": {
+    "Ref": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "agent",
+            "run",
+            "task",
+            "event",
+            "artifact",
+            "board_post",
+            "memory",
+            "scope",
+            "work_claim",
+            "conflict",
+            "control",
+            "decision"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ],
+      "title": "Ref",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "task_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "expected_task_revision": {
+      "minimum": 1,
+      "title": "Expected Task Revision",
+      "type": "integer"
+    },
+    "action": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Action",
+      "type": "string"
+    },
+    "note": {
+      "default": "",
+      "maxLength": 1024,
+      "title": "Note",
+      "type": "string"
+    },
+    "basis": {
+      "items": {
+        "$ref": "#/$defs/Ref"
+      },
+      "maxItems": 8,
+      "title": "Basis",
+      "type": "array"
+    },
+    "run_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Run Id"
+    },
+    "agent_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Agent Id"
+    }
+  },
+  "required": [
+    "task_id",
+    "expected_task_revision",
+    "action"
+  ],
+  "title": "ResolutionRequestCreate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

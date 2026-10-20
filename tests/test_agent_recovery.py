@@ -37,7 +37,7 @@ class FakeClient:
 
 
 def status_error(status, message="rejected"):
-    request = httpx.Request("POST", "http://127.0.0.1:8765/v0.1/runs")
+    request = httpx.Request("POST", "http://127.0.0.1:8765/v1/runs")
     response = httpx.Response(status, request=request, json={"error": message})
     return httpx.HTTPStatusError(message, request=request, response=response)
 
@@ -287,9 +287,9 @@ class AmbiguousClient:
 
 def bound_client(world):
     """The real SDK client wired to the in-process service transport."""
-    client = Client("http://testserver/v0.1/", world.owner)
+    client = Client("http://testserver/v1/", world.owner)
     client.http.close()
-    client.http = TestClient(world.app, base_url="http://testserver/v0.1/",
+    client.http = TestClient(world.app, base_url="http://testserver/v1/",
                              headers={"Authorization": f"Bearer {world.owner}"})
     return client
 

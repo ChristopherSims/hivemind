@@ -1,0 +1,29 @@
+{
+  "additionalProperties": false,
+  "description": "One bounded evaluation pass. Non-admin callers must fence with the Nexus lease.",
+  "properties": {
+    "coordinator_epoch": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Coordinator Epoch"
+    },
+    "limit": {
+      "default": 50,
+      "maximum": 100,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    }
+  },
+  "title": "PolicyTick",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

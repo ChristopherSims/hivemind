@@ -100,7 +100,7 @@ class ReviewAutomation:
 def install(app, service, principal, command, envelope, *, policy=None):
     automation = ReviewAutomation(app, service, policy)
     app.state.review_automation = automation
-    @app.post("/v0.1/review-automation:tick")
+    @app.post("/v1/review-automation:tick")
     async def review_tick(body: ReviewTick, p=Depends(principal), idempotency_key: str | None = Header(None)):
         return command(p, "review-automation-tick", idempotency_key, body, lambda: automation.tick(p, body))
     return automation

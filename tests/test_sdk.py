@@ -79,3 +79,48 @@ def test_mcp_tools_load():
     tools = asyncio.run(server.list_tools())
     assert len(tools) >= 10
     assert "hivemind_query_context" in {t.name for t in tools}
+
+
+@pytest.mark.parametrize("action", ["pause", "resume", "cancel", "steer", "assign_task"])
+def test_every_supported_adapter_control_has_durable_transition_evidence(tmp_path, action):
+    path = tmp_path / "state.json"
+    results = []
+    control = {"id": "control", "action": action, "target_run_id": "run",
+               "replacement_task_id": "replacement", "reserved_claim_id": "claim"}
+    class Client:
+        def request(self, method, route, body=None, key=None):
+            if "/controls?" in route:
+                return [control]
+            if route.startswith("work-claims"):
+                return [{"id": "claim", "scope_ids": ["replacement-scope"]}]
+            if route.endswith(":result"):
+                saved = json.loads(path.read_text())
+                assert saved["pending_results"]["control"] == body
+                assert body["checkpoint_id"]
+                results.append(body)
+            return {}
+    adapter = ControlledAdapter(Client(), "project", "agent", "run", path)
+    adapter.boundary()
+    if action in ("steer", "assign_task"):
+        assert not results
+        assert adapter.state["task_id"] == "replacement"
+        adapter.confirm_transition()
+    assert len(results) == 1
+    expected = {"pause": "paused", "cancel": "cancelled"}.get(action, "running")
+    assert results[0]["observed_status"] == expected
+    adapter.boundary()
+    assert len(results) == 1
+
+
+@pytest.mark.parametrize("extra", [{"action": "unknown"}, {"action": "pause", "target_run_id": "foreign"}])
+def test_unknown_or_foreign_control_never_becomes_running_success(tmp_path, extra):
+    writes = []
+    class Client:
+        def request(self, method, route, body=None, key=None):
+            if method == "GET":
+                return [{"id": "control", **extra}]
+            writes.append((route, body))
+    adapter = ControlledAdapter(Client(), "project", "agent", "run", tmp_path / "state.json")
+    with pytest.raises(RuntimeError):
+        adapter.boundary()
+    assert not writes and not adapter.state["applied"]

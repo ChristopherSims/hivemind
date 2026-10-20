@@ -1,0 +1,22 @@
+{
+  "status": "timeout",
+  "command_timeout_seconds": 1800,
+  "exit_code": null,
+  "signal": "TIMEOUT",
+  "last_progress": {
+    "phase": "encoding",
+    "public_documents_started": 6500
+  },
+  "completed_document_count": null,
+  "total_public_documents": 10000,
+  "dataset_sha256": "6489b9113adae5efbcb4e9650a04e0b310049ad2d7f3537477d6ce957d8984ad",
+  "disposable_state": "preparing",
+  "ready": false,
+  "measurements_run": false,
+  "blind_review_exported": false,
+  "notes": [
+    "Partial vectors are not a successfully prepared dataset.",
+    "No duplicate preparation or timed load was launched.",
+    "A successful complete preparation is required before measurement."
+  ]
+}

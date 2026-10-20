@@ -1,0 +1,40 @@
+{
+  "version": "hivemind-retrieval-v1",
+  "label_policy": "Hand-authored synthetic project evidence. Grade 2 directly answers; grade 1 supports the answer; unlisted documents are nonrelevant. Not a representative production corpus.",
+  "documents": [
+    {"id":"nav-a","text":"The website navbar collapses into a hamburger menu below 768 pixels. Keyboard focus stays inside the expanded menu."},
+    {"id":"nav-b","text":"Responsive header navigation uses a tablet breakpoint of 768px and an accessible menu toggle."},
+    {"id":"nav-negative","text":"The HTTP response header Content-Security-Policy restricts browser resource loading; it does not control page navigation."},
+    {"id":"auth-a","text":"Rotate refresh tokens on every use and invalidate the entire token family when an old refresh token is replayed."},
+    {"id":"auth-b","text":"Session theft mitigation uses single-use refresh credentials and family-wide revocation on reuse."},
+    {"id":"auth-negative","text":"Refresh the dashboard every minute to show recent token usage statistics."},
+    {"id":"wal-a","text":"SQLite WAL supports simultaneous readers and one writer. Do not store a writable WAL database on a network filesystem."},
+    {"id":"wal-b","text":"Keep canonical.sqlite on local disk. Shared agents must connect through the service rather than opening database files."},
+    {"id":"wal-negative","text":"The network dashboard shows filesystem disk-usage charts and database icons."},
+    {"id":"epoch-a","text":"Reject coordinator controls carrying an old Nexus epoch after leadership changes. A lease does not grant permanent authority."},
+    {"id":"epoch-b","text":"A new coordinator fences stale commands from its predecessor using monotonically increasing authority generations."},
+    {"id":"epoch-negative","text":"Historical Nexus messages retain a coordinator-at-send-time badge in the timeline."},
+    {"id":"erase-a","text":"Deleting a memory hides it from reads but old backups, WAL pages, and adapter spools can retain its bytes. Verify retained copies separately."},
+    {"id":"erase-b","text":"Logical deletion is not physical erasure. Compaction does not sanitize historical snapshots or remote provider storage."},
+    {"id":"erase-negative","text":"Hide the delete button when a memory has no selected evidence source."},
+    {"id":"retry-a","text":"After an ambiguous model turn, hold execution for operator reconciliation. Never repeat a potentially completed external side effect blindly."},
+    {"id":"retry-b","text":"A durable intent with an unknown outcome blocks automatic restart until exact completion evidence is available."},
+    {"id":"retry-negative","text":"Retry failed CSS downloads with exponential backoff to improve the browser loading experience."},
+    {"id":"symbol-a","text":"The canonical_retention_guard function validates merged candidate ownership before local Git retention."},
+    {"id":"symbol-b","text":"Use canonical_retention_guard with the canonical project binding, not merely Git ancestry."},
+    {"id":"symbol-negative","text":"A generic retention guard can hide old chart labels without changing Git repositories."},
+    {"id":"multilingual-a","text":"Los mensajes privados solo son visibles para participantes autorizados. No publique su contenido en el tablero compartido."},
+    {"id":"multilingual-b","text":"Private direct messages must not be copied into a public board without explicit disclosure permission."},
+    {"id":"multilingual-negative","text":"The shared board supports Spanish names and public multilingual announcements."}
+  ],
+  "queries": [
+    {"id":"navigation","subset":"semantic","text":"At what screen width does the site menu switch to a compact button?","relevance":{"nav-a":2,"nav-b":2}},
+    {"id":"session","subset":"semantic","text":"How do we contain stolen long-lived login credentials if an attacker reuses one?","relevance":{"auth-a":2,"auth-b":2}},
+    {"id":"sqlite","subset":"semantic","text":"Can workers share the writable canonical database over a network drive?","relevance":{"wal-a":2,"wal-b":2}},
+    {"id":"fencing","subset":"semantic","text":"How is a replaced leader prevented from issuing delayed commands?","relevance":{"epoch-a":2,"epoch-b":2}},
+    {"id":"erasure","subset":"semantic","text":"Does removing a record guarantee its contents are gone from every retained copy?","relevance":{"erase-a":2,"erase-b":2}},
+    {"id":"uncertain","subset":"semantic","text":"Should a worker repeat a tool operation if it crashed before receiving the result?","relevance":{"retry-a":2,"retry-b":2}},
+    {"id":"symbol","subset":"exact","text":"canonical_retention_guard","relevance":{"symbol-a":2,"symbol-b":1}},
+    {"id":"spanish","subset":"multilingual","text":"¿Puedo copiar una conversación privada al tablero público?","relevance":{"multilingual-a":2,"multilingual-b":2}}
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "additionalProperties": false,
+  "description": "Authorized per-agent runtime/tool declaration; names are registry-approved.\n\nThe flags are advisory intent, never proof: strict-sandbox eligibility\nadditionally requires the operator's run-bound verifier at route time.\n``expected_revision`` is an optional CAS fence; declarations freeze while\nthe agent has in-flight bound work.",
+  "properties": {
+    "runtime": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Runtime",
+      "type": "string"
+    },
+    "tools": {
+      "items": {
+        "maxLength": 64,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 32,
+      "title": "Tools",
+      "type": "array"
+    },
+    "strict_sandbox": {
+      "default": false,
+      "title": "Strict Sandbox",
+      "type": "boolean"
+    },
+    "network": {
+      "default": false,
+      "title": "Network",
+      "type": "boolean"
+    },
+    "expected_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Revision"
+    }
+  },
+  "required": [
+    "runtime"
+  ],
+  "title": "RuntimeDeclaration",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

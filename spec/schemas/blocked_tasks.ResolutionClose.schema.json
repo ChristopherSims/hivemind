@@ -1,0 +1,23 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "outcome": {
+      "maxLength": 32,
+      "minLength": 1,
+      "title": "Outcome",
+      "type": "string"
+    },
+    "note": {
+      "default": "",
+      "maxLength": 1024,
+      "title": "Note",
+      "type": "string"
+    }
+  },
+  "required": [
+    "outcome"
+  ],
+  "title": "ResolutionClose",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

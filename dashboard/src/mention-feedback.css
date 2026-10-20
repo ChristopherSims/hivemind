@@ -1,0 +1,157 @@
+/*
+ * Mention feedback styling. Every selector is scoped under `.mention-feedback`
+ * (or its own prefixed class) and carries token fallbacks, so the guard renders
+ * correctly whether or not tokens.css/mention-composer.css are loaded and
+ * regardless of bundle order relative to the legacy rules in style.css.
+ */
+
+.mention-feedback {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border, #2b394b);
+  border-radius: 8px;
+  background: var(--raised, #192637);
+  color: var(--text, #e8eef7);
+  font-size: 12px;
+  line-height: 1.45;
+  min-width: 0;
+}
+
+.mention-feedback--compact {
+  margin-top: 6px;
+  padding: 6px 8px;
+  gap: 4px;
+}
+
+.mention-feedback.mention-feedback-warning {
+  border-color: var(--warning-border);
+  background: var(--warning-surface);
+}
+
+.mention-feedback-message {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.mention-feedback-message strong {
+  font-weight: 600;
+}
+
+.mention-feedback-tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mention-feedback-tokens code {
+  padding: 1px 5px;
+  border: 1px solid var(--warning-border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--warning);
+  font-size: 11px;
+}
+
+.mention-plain-text-button {
+  justify-self: start;
+  padding: 5px 10px;
+  border: 1px solid var(--warning-border);
+  border-radius: 6px;
+  background: var(--warning-surface);
+  color: var(--warning);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mention-plain-text-button:hover:not(:disabled) {
+  background: var(--warning-border);
+}
+
+.mention-plain-text-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.mention-feedback-confirmed {
+  margin: 0;
+  color: var(--warning);
+  font-size: 11px;
+}
+
+.mention-feedback.mention-feedback-receipts {
+  border-color: var(--border, #2b394b);
+}
+
+.mention-feedback[data-mention-receipts="queued"] {
+  border-color: var(--success-border);
+  background: var(--success-surface);
+}
+
+.mention-feedback[data-mention-receipts="unavailable"],
+.mention-feedback[data-mention-receipts="closed"] {
+  border-color: var(--warning-border);
+}
+
+.mention-receipt-list {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mention-receipt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mention-receipt-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.mention-receipt-state {
+  color: var(--muted, #a0aec1);
+  font-size: 11px;
+}
+
+.mention-receipt-presence {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.mention-receipt-presence::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.mention-receipt-presence[data-presence="online"] { color: var(--success); }
+.mention-receipt-presence[data-presence="stale"] { color: var(--warning); }
+.mention-receipt-presence[data-presence="offline"] { color: var(--muted); }
+
+.mention-feedback-retry {
+  justify-self: start;
+  padding: 3px 8px;
+  border: 1px solid var(--border, #2b394b);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}

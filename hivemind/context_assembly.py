@@ -1,13 +1,13 @@
 """Task-specific, bounded context assembly for Hivemind.
 
 This module is an additive, opt-in context surface. The pre-existing
-``service.context`` implementation (``POST /v0.1/context:query`` and the legacy
-``POST /v0.1/context:assemble`` mapping in ``hivemind.api``) is untouched and stays
+``service.context`` implementation (``POST /v1/context:query`` and the legacy
+``POST /v1/context:assemble`` mapping in ``hivemind.api``) is untouched and stays
 available for compatibility. This module provides:
 
 * ``assemble(service, principal, request, ...)`` -- build a ranked, compact packet.
 * ``install(app, service, principal, command, envelope, ...)`` -- register
-  ``POST /v0.1/context:assemble`` on a FastAPI app.
+  ``POST /v1/context:assemble`` on a FastAPI app.
 
 Design guarantees
 -----------------
@@ -75,6 +75,10 @@ DEFAULT_SCAN_LIMIT = 20000
 MAX_SCAN_LIMIT = 200000
 MAX_ITEM_TOKENS = 1024
 OMITTED_ID_LIMIT = 200
+# Bounded candidate window: only lightweight stubs (no bodies) are retained for ranking,
+# pruned to this cap; full bodies are materialized with canonical recheck only while
+# placing items. The cap far exceeds what any token budget (<= 32000) can place.
+CANDIDATE_CAP = 4096
 
 PLACEHOLDER_REQUEST_ID = "req_00000000-0000-7000-8000-000000000000"
 EVIDENCE_NOTICE = ("All items are untrusted evidence retrieved from the project store; they are "
@@ -260,35 +264,68 @@ def _bound_scan(scan_limit):
     return max(1, min(int(scan_limit), MAX_SCAN_LIMIT))
 
 
-def _scan(store, kind, project, principal, limit):
-    """Read canonical rows from SQL (no recent-1000 cap), then apply Store authorization.
+def _visibility_sql(kind, principal):
+    """Exact SQL rendering of ``Store.visible`` for scanned kinds, so raw examination
+    counts and truncation flags cover only rows the principal may see (hidden/private
+    rows are never counted and cannot leak via scan metadata)."""
+    if principal["role"] == "admin":
+        return "", []
+    if kind == "message":
+        if principal["role"] == "observer":
+            return "", []
+        return (" AND (json_extract(body,'$.from')=? OR json_extract(body,'$.to')=?)",
+                [principal.get("agent"), principal.get("agent")])
+    return " AND (private_agent IS NULL OR private_agent=?)", [principal.get("agent")]
 
-    Returns ``(authorized, rows_considered)``. Every row is filtered through the same
-    ``Store`` helpers the rest of the service uses, so visibility, memory validity/time/
-    dispute/source checks, and task evidence checks are never bypassed.
+
+SCAN_PAGE = 512
+
+
+def _scan(store, kind, project, principal, limit, stats):
+    """Stream canonical rows from SQL (no recent-1000 cap) with Store authorization.
+
+    Generator: yields ``(row, body)`` for authorized rows, paging keyset-style over the
+    ``resources(project,kind,deleted,seq)`` index in ``SCAN_PAGE`` chunks so per-page
+    memory is bounded. Bodies must be consumed transiently by the caller. ``stats`` is
+    mutated with ``examined`` (visible rows scanned -- hidden rows are filtered in SQL
+    and never counted) and ``truncated`` (True when the row bound was reached).
     """
-    rows = store.db.execute(
-        "SELECT id,kind,project,owner,private_agent,revision,seq,body,deleted FROM resources "
-        "WHERE kind=? AND project=? AND deleted=0 ORDER BY seq DESC LIMIT ?",
-        (kind, project, limit)).fetchall()
-    authorized = []
-    for row in rows:
-        if not store.visible(row, principal):
-            continue
-        body = json.loads(row["body"])
-        if kind == "task":
-            try:
-                body = store.task_view(body, principal)
-            except Problem:
-                continue
-        elif kind == "memory":
-            try:
-                if not store.valid_memory(body, principal):
+    vis_sql, vis_args = _visibility_sql(kind, principal)
+    examined, before = 0, None
+    while examined < limit:
+        size = min(SCAN_PAGE, limit - examined)
+        sql = ("SELECT id,kind,project,owner,private_agent,revision,seq,body,deleted "
+               "FROM resources WHERE kind=? AND project=? AND deleted=0" + vis_sql)
+        args = [kind, project, *vis_args]
+        if before is not None:
+            sql += " AND seq<?"
+            args.append(before)
+        sql += " ORDER BY seq DESC LIMIT ?"
+        args.append(size)
+        rows = store.db.execute(sql, args).fetchall()
+        if not rows:
+            break
+        before = rows[-1]["seq"]
+        examined += len(rows)
+        for row in rows:
+            if not store.visible(dict(row), principal):
+                continue  # defense in depth; the SQL predicate is exact
+            body = json.loads(row["body"])
+            if kind == "task":
+                try:
+                    body = store.task_view(body, principal)
+                except Problem:
                     continue
-            except Problem:
-                continue
-        authorized.append((row, body))
-    return authorized, len(rows)
+            elif kind == "memory":
+                try:
+                    if not store.valid_memory(body, principal):
+                        continue
+                except Problem:
+                    continue
+            stats["authorized"] = stats.get("authorized", 0) + 1
+            yield row, body
+    stats["examined"] = stats.get("examined", 0) + examined
+    stats["truncated"] = examined >= limit
 
 
 def _query_terms(query):
@@ -367,6 +404,33 @@ def _item_bindings(kind, body):
     return {"project_id": body.get("project_id"), "agent_id": agent, "run_id": run, "task_id": task}
 
 
+def _materialize_candidate(store, service, principal, candidate):
+    """Fetch the current canonical body for a ranked stub. The candidate is dropped
+    unless the row still exists, is visible, matches the ranked revision, and is still
+    valid -- derivative scan results are only hints; canonical state decides."""
+    try:
+        row = store.raw(candidate["id"], candidate["kind"])
+    except Problem:
+        return None
+    if row["revision"] != candidate["revision"] or not store.visible(row, principal):
+        return None
+    body = json.loads(row["body"])
+    kind = candidate["kind"]
+    try:
+        if kind == "task":
+            body = store.task_view(body, principal)
+        elif kind == "memory" and not store.valid_memory(body, principal):
+            return None
+    except Problem:
+        return None
+    if kind == "message":
+        if body.get("to") != principal.get("agent") or body.get("expires_at", 0) <= time.time():
+            return None
+        if hasattr(service, "delivery_state"):
+            body = service.delivery_state(body)
+    return body
+
+
 def _build_item(candidate, counter, cap, rank):
     body = candidate["body"]
     data, truncated = _compact_data(candidate["kind"], body, counter, cap)
@@ -417,6 +481,12 @@ def _tokenization_meta(counter, request):
         "target_tokenizer": request.target_tokenizer,
         "covers": ("full response envelope: protocol fields, request_id, selection metadata, "
                    "items, and graph edges"),
+        "vendor_overhead": {
+            "included": False,
+            "note": ("token_count measures the serialized canonical packet exactly as returned. "
+                     "Vendor-side hidden system prompts, tool schemas, and API overhead are not "
+                     "observable locally and are excluded; reserve headroom separately."),
+        },
     }
     if counter.method == "local_tokenizer":
         meta["note"] = ("Counted with a locally cached tokenizer, loaded with no network access. "
@@ -441,16 +511,17 @@ def _finalize_packet(packet, counter, wrap, budget, ranked, omitted_ids, dropped
         all_omitted = omitted_ids | set(dropped)
         reasons = {}
         for candidate in ranked:
-            if candidate["body"]["id"] in all_omitted:
+            if candidate["id"] in all_omitted:
                 reasons[candidate["category"]] = reasons.get(candidate["category"], 0) + 1
         packet["omitted"] = {
             "count": len(all_omitted),
-            "resource_ids": [candidate["body"]["id"] for candidate in ranked
-                             if candidate["body"]["id"] in all_omitted][:OMITTED_ID_LIMIT],
+            "resource_ids": [candidate["id"] for candidate in ranked
+                             if candidate["id"] in all_omitted][:OMITTED_ID_LIMIT],
             "reasons": reasons,
         }
-        packet["truncated"] = bool(all_omitted) or any(scan_truncated.values()) or any(
-            item["content_truncated"] for item in packet["items"])
+        packet["truncated"] = (bool(all_omitted) or any(scan_truncated.values())
+                               or packet["scan"].get("candidates_truncated", False) or any(
+                                   item["content_truncated"] for item in packet["items"]))
         packet["scan"]["runtime_ms"] = int((time.monotonic() - started) * 1000)
         packet["warnings"] = sorted(set(warnings))
         packet["token_count"] = 0
@@ -539,12 +610,21 @@ def _select_agents(service, principal, request, store, runs, requester_agent, wa
     return selected[:selector.max_agents], explicit, semantic, len(agents)
 
 
-def assemble(service, principal, request, counter=None, scan_limit=None, wrap=None):
+def assemble(service, principal, request, counter=None, scan_limit=None, wrap=None,
+             require_exact=False, registry=None):
     """Build a ranked, compact, budget-bounded context packet.
 
     ``counter`` may be a callable or an object exposing ``.count(text)``; it is used for
     every token measurement. ``wrap`` is the envelope used for budget measurement and
     defaults to :func:`default_envelope`.
+
+    With ``require_exact=True`` the counter is resolved through
+    ``hivemind.retrieval_runtime`` (the operator-configured ``registry`` when given,
+    else the process default) and must be bound to ``request.target_tokenizer`` (a
+    local cached tokenizer, optionally operator hash-pinned, or an operator-registered
+    prepared vendor encoding). When no exact counter exists,
+    ``Problem("exact_counter_unavailable", 422)`` is raised *before* any candidate
+    scanning or assembly work executes.
     """
     store = service.store
     project = request.project_id
@@ -552,7 +632,12 @@ def assemble(service, principal, request, counter=None, scan_limit=None, wrap=No
     started = time.monotonic()
     deadline = started + request.timeout_ms / 1000.0
     scan_bound = _bound_scan(scan_limit)
-    counter = wrap_counter(counter) or default_counter(request.target_tokenizer)
+    if require_exact:
+        from . import retrieval_runtime
+        counter = (registry or retrieval_runtime.default_registry()).resolve(
+            request.target_tokenizer, require_exact=True, counter=counter)
+    else:
+        counter = wrap_counter(counter) or default_counter(request.target_tokenizer)
     wrap = wrap or default_envelope
     warnings = []
 
@@ -569,7 +654,9 @@ def assemble(service, principal, request, counter=None, scan_limit=None, wrap=No
     requester_agent = requester_run["agent_id"] if requester_run else None
     requester_task = requester_run.get("task_id") if requester_run else None
 
-    run_rows, runs_total = _scan(store, "run", project, principal, scan_bound)
+    run_stats = {}
+    run_rows = list(_scan(store, "run", project, principal, scan_bound, run_stats))
+    runs_total = run_stats.get("examined", 0)
     runs = [body for _, body in run_rows]
     selected, explicit, semantic, agent_count = _select_agents(
         service, principal, request, store, runs, requester_agent, warnings)
@@ -580,81 +667,112 @@ def assemble(service, principal, request, counter=None, scan_limit=None, wrap=No
 
     now = time.time()
     included = set(request.include)
-    scanned = {"run": runs_total}
-    scan_truncated = {"run": runs_total >= scan_bound}
-    candidates = []
+    scanned = {"run": run_stats.get("authorized", 0)}
+    scan_truncated = {"run": run_stats.get("truncated", False)}
 
-    def consider(category, kind, row, body, bonus=0.0):
-        candidates.append({
-            "category": category, "kind": kind, "row": row, "body": body, "bonus": bonus,
-            "trust": body.get("origin", body.get("trust", "structured")),
-        })
+    terms = _query_terms(request.query)
+    # Bounded candidate window: stubs only (id/revision/seq + scoring), never bodies.
+    best = {}
+    candidate_state = {"truncated": False}
+
+    def rank_key(stub):
+        return (-stub["score"],
+                CATEGORY_ORDER.index(stub["category"]) if stub["category"] in CATEGORY_ORDER
+                else 99,
+                -stub["seq"], stub["id"])
+
+    def prune():
+        if len(best) > 2 * CANDIDATE_CAP:
+            keep = sorted(best.values(), key=rank_key)[:CANDIDATE_CAP]
+            best.clear()
+            best.update({stub["id"]: stub for stub in keep})
+            candidate_state["truncated"] = True
+
+    def offer(category, kind, row, body, bonus=0.0):
+        text = searchable(body).lower()
+        matched = [term for term in terms if term in text]
+        ratio = (len(matched) / len(terms)) if terms else 0.0
+        score = CATEGORY_WEIGHT.get(category, 0.2) + MATCH_WEIGHT * ratio + bonus
+        stub = {"category": category, "kind": kind, "id": body["id"],
+                "seq": int(row["seq"]), "revision": row["revision"],
+                "trust": body.get("origin", body.get("trust", "structured")),
+                "matched_terms": matched, "match_ratio": ratio, "score": score}
+        existing = best.get(stub["id"])
+        if existing is None or score > existing["score"]:
+            best[stub["id"]] = stub
+            prune()
 
     if "tasks" in included:
-        rows, total = _scan(store, "task", project, principal, scan_bound)
-        scanned["task"], scan_truncated["task"] = len(rows), total >= scan_bound
-        for row, body in rows:
-            consider("task", "task", row, body, 0.5 if body["id"] == requester_task else 0.0)
+        stats = {}
+        for row, body in _scan(store, "task", project, principal, scan_bound, stats):
+            offer("task", "task", row, body, 0.5 if body["id"] == requester_task else 0.0)
+        scanned["task"] = stats.get("authorized", 0)
+        scan_truncated["task"] = stats.get("truncated", False)
 
     if "work_claims" in included:
-        rows, total = _scan(store, "work_claim", project, principal, scan_bound)
-        scanned["work_claim"], scan_truncated["work_claim"] = len(rows), total >= scan_bound
-        for row, body in rows:
+        stats = {}
+        for row, body in _scan(store, "work_claim", project, principal, scan_bound, stats):
             if body.get("state") not in ("active", "reserved") or body.get("expires_at", 0) <= now:
                 continue
             if body.get("agent_id") not in selected_set:
                 continue
             bonus = 0.05 if body.get("run_id") in run_ids_selected else 0.0
-            consider("work_claim", "work_claim", row, body, bonus)
+            offer("work_claim", "work_claim", row, body, bonus)
+        scanned["work_claim"] = stats.get("authorized", 0)
+        scan_truncated["work_claim"] = stats.get("truncated", False)
 
     if "memory" in included:
-        rows, total = _scan(store, "memory", project, principal, scan_bound)
-        scanned["memory"], scan_truncated["memory"] = len(rows), total >= scan_bound
-        for row, body in rows:
+        stats = {}
+        for row, body in _scan(store, "memory", project, principal, scan_bound, stats):
             if request.require_verified_memory and body.get("status") != "verified":
                 continue
             if not _memory_in_scope(body, selected_set, run_ids_selected, task_ids_selected):
                 continue
-            consider("memory", "memory", row, body)
+            offer("memory", "memory", row, body)
+        scanned["memory"] = stats.get("authorized", 0)
+        scan_truncated["memory"] = stats.get("truncated", False)
 
     if "board" in included:
-        rows, total = _scan(store, "board_post", project, principal, scan_bound)
-        scanned["board_post"], scan_truncated["board_post"] = len(rows), total >= scan_bound
-        for row, body in rows:
-            consider("board_post", "board_post", row, body)
+        stats = {}
+        for row, body in _scan(store, "board_post", project, principal, scan_bound, stats):
+            offer("board_post", "board_post", row, body)
+        scanned["board_post"] = stats.get("authorized", 0)
+        scan_truncated["board_post"] = stats.get("truncated", False)
 
     if "artifacts" in included:
-        rows, total = _scan(store, "artifact", project, principal, scan_bound)
-        scanned["artifact"], scan_truncated["artifact"] = len(rows), total >= scan_bound
-        for row, body in rows:
-            consider("artifact", "artifact", row, body)
+        stats = {}
+        for row, body in _scan(store, "artifact", project, principal, scan_bound, stats):
+            offer("artifact", "artifact", row, body)
+        scanned["artifact"] = stats.get("authorized", 0)
+        scan_truncated["artifact"] = stats.get("truncated", False)
 
     if "ledger" in included:
         for row, body in run_rows:
             if body["agent_id"] in selected_set:
-                consider("run", "run", row, body)
+                offer("run", "run", row, body)
 
     if "messages" in included and principal.get("agent"):
-        rows, total = _scan(store, "message", project, principal, scan_bound)
-        scanned["message"], scan_truncated["message"] = len(rows), total >= scan_bound
-        for row, body in rows:
+        stats = {}
+        for row, body in _scan(store, "message", project, principal, scan_bound, stats):
             if body.get("to") != principal["agent"] or body.get("expires_at", 0) <= now:
                 continue
-            state = service.delivery_state(body) if hasattr(service, "delivery_state") else body
-            consider("message", "message", row, state)
+            offer("message", "message", row, body)
+        scanned["message"] = stats.get("authorized", 0)
+        scan_truncated["message"] = stats.get("truncated", False)
 
     if "controls" in included:
         lease = service.lease(principal, project)
-        rows, total = _scan(store, "control", project, principal, scan_bound)
-        scanned["control"], scan_truncated["control"] = len(rows), total >= scan_bound
-        for row, body in rows:
+        stats = {}
+        for row, body in _scan(store, "control", project, principal, scan_bound, stats):
             if body.get("target_agent_id") not in selected_set:
                 continue
             if body.get("state") not in ("queued", "acknowledged", "applying"):
                 continue
             if body.get("expires_at", 0) <= now or not lease or body.get("lease_id") != lease["id"]:
                 continue
-            consider("control", "control", row, body)
+            offer("control", "control", row, body)
+        scanned["control"] = stats.get("authorized", 0)
+        scan_truncated["control"] = stats.get("truncated", False)
 
     graph_edges = []
     if "graph" in included and selected and service.indexes is not None:
@@ -673,32 +791,19 @@ def assemble(service, principal, request, counter=None, scan_limit=None, wrap=No
                 if row["kind"] == "memory" and request.require_verified_memory and (
                         node.get("status") != "verified"):
                     continue
-                consider("graph", row["kind"], row, node)
+                offer("graph", row["kind"], row, node)
         except Problem as exc:
             warnings.append("graph expansion unavailable: " + exc.code)
 
     if time.monotonic() > deadline:
         warnings.append("Assembly deadline reached during candidate scan; results may be partial")
 
-    terms = _query_terms(request.query)
-    for candidate in candidates:
-        text = searchable(candidate["body"]).lower()
-        matched = [term for term in terms if term in text]
-        candidate["matched_terms"] = matched
-        candidate["match_ratio"] = (len(matched) / len(terms)) if terms else 0.0
-        candidate["score"] = (CATEGORY_WEIGHT.get(candidate["category"], 0.2)
-                              + MATCH_WEIGHT * candidate["match_ratio"] + candidate["bonus"])
-
-    best = {}
-    for candidate in candidates:
-        identity = candidate["body"]["id"]
-        if identity not in best or candidate["score"] > best[identity]["score"]:
-            best[identity] = candidate
-    ranked = sorted(
-        best.values(),
-        key=lambda c: (-c["score"],
-                       CATEGORY_ORDER.index(c["category"]) if c["category"] in CATEGORY_ORDER else 99,
-                       -int(c["row"]["seq"]), c["body"]["id"]))
+    if len(best) > CANDIDATE_CAP:
+        candidate_state["truncated"] = True
+    ranked = sorted(best.values(), key=rank_key)[:CANDIDATE_CAP]
+    if candidate_state["truncated"]:
+        warnings.append(
+            "Candidate ranking bounded to the top window; lower-ranked candidates omitted")
 
     packet = {
         "bindings": {
@@ -728,7 +833,7 @@ def assemble(service, principal, request, counter=None, scan_limit=None, wrap=No
         "token_budget_remaining": request.token_budget,
         "tokenization": _tokenization_meta(counter, request),
         "scan": {"scan_limit": scan_bound, "scanned": scanned, "scan_truncated": scan_truncated,
-                 "runtime_ms": 0},
+                 "candidates_truncated": candidate_state["truncated"], "runtime_ms": 0},
         "omitted": {"count": 0, "resource_ids": [], "reasons": {}},
         "truncated": False,
         "evidence_notice": EVIDENCE_NOTICE,
@@ -748,10 +853,15 @@ def assemble(service, principal, request, counter=None, scan_limit=None, wrap=No
     def place(candidate, item):
         item["rank"] = len(packet["items"]) + 1
         packet["items"].append(item)
-        included_ids.add(candidate["body"]["id"])
+        included_ids.add(candidate["id"])
 
     deferred = []
     for candidate in ranked:
+        body = _materialize_candidate(store, service, principal, candidate)
+        if body is None:
+            omitted_ids.add(candidate["id"])
+            continue
+        candidate["body"] = body
         item = _build_item(candidate, counter, cap, 0)
         cost = counter(canonical(item)) + 1
         category = candidate["category"]
@@ -764,7 +874,7 @@ def assemble(service, principal, request, counter=None, scan_limit=None, wrap=No
 
     for candidate, item, cost in deferred:
         if cost > remaining:
-            omitted_ids.add(candidate["body"]["id"])
+            omitted_ids.add(candidate["id"])
             continue
         place(candidate, item)
         remaining -= cost
@@ -792,24 +902,38 @@ def assemble(service, principal, request, counter=None, scan_limit=None, wrap=No
     return packet
 
 
-def install(app, service, principal, command, envelope, counter=None, scan_limit=None, counters=None):
-    """Register ``POST /v0.1/context:assemble`` on ``app``.
+def install(app, service, principal, command, envelope, counter=None, scan_limit=None,
+            counters=None, require_exact=False, registry=None):
+    """Register ``POST /v1/context:assemble`` on ``app``.
 
     ``principal`` is the request dependency (as in ``hivemind.api``), ``command`` is
     accepted for signature parity (assembly is read-only), and ``envelope`` wraps the
     returned packet and is also used to measure the envelope-inclusive token budget.
 
-    ``hivemind.api.create_app`` installs this route without the legacy alias.
+    ``require_exact`` is an operator-fixed policy (never client-selectable): when set,
+    counters are resolved through ``registry`` (or the process default registry) and the
+    request fails with ``exact_counter_unavailable`` before any work when no counter is
+    bound to ``target_tokenizer``. ``counters`` maps target tokenizer ids to
+    operator-approved counters. Assembly runs in a worker thread
+    (``asyncio.to_thread``); the response data carries ``hivemind_detached_work: True``.
     """
+    import asyncio
+
     from fastapi import Depends
 
-    @app.post("/v0.1/context:assemble")
+    @app.post("/v1/context:assemble")
     async def context_assemble(body: m.ContextQuery, p=Depends(principal)):
         header = envelope(None)
+
         def wrap(data):
-            return {**header, "data": data}
+            # The detached-work marker is part of the measured envelope so token_count
+            # continues to cover the exact bytes returned.
+            return {**header, "data": data, "hivemind_detached_work": True}
+
         selected_counter = (counters or {}).get(body.target_tokenizer, counter)
-        return wrap(assemble(service, p, body, counter=selected_counter, scan_limit=scan_limit,
-                             wrap=wrap))
+        packet = await asyncio.to_thread(
+            assemble, service, p, body, selected_counter, scan_limit, wrap,
+            require_exact, registry)
+        return wrap(packet)
 
     return app

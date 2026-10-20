@@ -1,0 +1,86 @@
+/* Shared-board unread: explicit, honest markers and badges.
+   Scoped to its own classes so the shared stylesheet stays untouched. */
+.board-unread-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  margin: 10px 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 11px;
+}
+.board-unread-toolbar .board-unread-count {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.board-unread-toolbar .board-unread-count[data-complete="false"] { color: var(--warning); }
+.board-unread-toolbar .board-unread-count[data-complete="unknown"] { color: var(--muted); }
+.board-unread-toolbar .board-unread-note {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+.board-unread-toolbar .board-unread-error {
+  color: var(--danger);
+  font-size: 10px;
+}
+.board-unread-toolbar button {
+  font-size: 11px;
+  border: 1px solid var(--border);
+  padding: 5px 9px;
+  background: var(--raised);
+  white-space: nowrap;
+}
+.board-unread-toolbar button:disabled { opacity: .55; }
+
+/* Board badge, e.g. on the board picker or a board tab. */
+.board-unread-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: var(--info-surface);
+  color: var(--info);
+  font-size: 10px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.board-unread-badge.truncated { background: var(--warning-surface); color: var(--warning); }
+
+/* Per-post marker: read posts are quiet, unread posts invite one explicit act. */
+.board-post-read-control {
+  font-size: 10px;
+  border: 1px solid transparent;
+  padding: 2px 6px;
+  background: none;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.board-post-read-control.read { color: var(--success); }
+.board-post-read-control.unread {
+  border-color: var(--success-border);
+  color: var(--success);
+  background: var(--success-surface);
+}
+.board-post-read-control.unread:hover { border-color: var(--success); }
+.board-post-read-control.unread:disabled { opacity: .6; }
+
+/* Unread posts get a quiet left rail so scanning a board is possible without
+   ever implying that viewing changed anything. */
+.virtual-timeline-item[data-board-unread="true"] {
+  box-shadow: inset 3px 0 0 var(--success-border);
+}
+.virtual-timeline-item[data-board-unread="false"] { box-shadow: none; }
+
+@media(prefers-reduced-motion:reduce) {
+  .board-unread-badge, .board-post-read-control { transition: none; }
+}

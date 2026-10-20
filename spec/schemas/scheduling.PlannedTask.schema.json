@@ -1,4 +1,46 @@
 {
+  "$defs": {
+    "TaskRoutingRequirements": {
+      "additionalProperties": false,
+      "properties": {
+        "required_runtime": {
+          "anyOf": [
+            {
+              "enum": [
+                "factory",
+                "oh_my_pi",
+                "a2a",
+                "acp"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Required Runtime"
+        },
+        "required_tools": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Required Tools",
+          "type": "array"
+        },
+        "strict_sandbox": {
+          "default": false,
+          "title": "Strict Sandbox",
+          "type": "boolean"
+        }
+      },
+      "title": "TaskRoutingRequirements",
+      "type": "object"
+    }
+  },
   "additionalProperties": false,
   "properties": {
     "key": {
@@ -37,6 +79,16 @@
       "title": "Depends On",
       "type": "array"
     },
+    "external_dependency_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "External Dependency Ids",
+      "type": "array"
+    },
     "priority": {
       "default": 0,
       "maximum": 1000,
@@ -65,6 +117,17 @@
       "default": false,
       "title": "Require Verified Dependencies",
       "type": "boolean"
+    },
+    "routing": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TaskRoutingRequirements"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [

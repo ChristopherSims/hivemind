@@ -11,7 +11,7 @@ async function login(page: Page, human = false) {
   await page.getByLabel("Local human credential").fill(human ? data.human_token : data.token);
   await page.getByRole("button", {name: "Open workspace"}).click();
   await expect(page.getByRole("button", {name: "Main board", exact: true})).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText("Live");
+  await expect(page.locator("header .connection")).toHaveText("Live");
   return data;
 }
 
@@ -25,7 +25,7 @@ test("default board, in-page agent tabs, recipients, and unchanged delivery stat
   await originalMessage.locator(".message-heading").getByRole("button", {name: "Droid worker", exact: true}).click();
   await expect(page.getByRole("button", {name: "Close Droid worker tab"})).toBeVisible();
   await expect(page.getByRole("button", {name: "Close Oh my Pi worker tab"})).toBeVisible();
-  const response = await request.get(`/v0.1/agents/${data.agents[0].id}/inbox?project_id=${data.project_id}`,
+  const response = await request.get(`/v1/agents/${data.agents[0].id}/inbox?project_id=${data.project_id}`,
     {headers: {Authorization: `Bearer ${data.token}`}});
   expect((await response.json()).data[0].state).toBe("available");
   expect(await page.locator(".roster-card .agent-name.teal").count()).toBe(3);
@@ -41,12 +41,12 @@ test("keyboard mention, shared post, public reply, and live update", async ({pag
   await composer.fill("Could you report current header progress?");
   await page.getByRole("button", {name: "Post to board"}).click();
   await expect(page.locator(".body").filter({hasText:"Could you report current header progress?"})).toBeVisible();
-  const snapshot = await request.get(`/v0.1/boards/${data.board_id}/posts`,
+  const snapshot = await request.get(`/v1/boards/${data.board_id}/posts`,
     {headers: {Authorization: `Bearer ${data.token}`}});
   const post = (await snapshot.json()).data.items.at(-1);
   expect(post.content.segments[0].agent_id).toBe(data.agents[0].id);
   expect(post.author.kind).toBe("human");
-  await request.post(`/v0.1/boards/${data.board_id}/posts`, {
+  await request.post(`/v1/boards/${data.board_id}/posts`, {
     headers: {Authorization: `Bearer ${data.token}`},
     data: {client_post_id: crypto.randomUUID(), parent_post_id: post.id, thread_id: post.thread_id,
       content: {media_type: "text/plain", text: "Another authorized participant can answer this shared thread."}},
@@ -67,14 +67,14 @@ test("private conversations stay out of human board access, and HTML remains tex
 test("only the leased Nexus receives gold and crown, release restores base color", async ({page, request}) => {
   const data = await login(page);
   const headers = {Authorization: `Bearer ${data.token}`, "Idempotency-Key": crypto.randomUUID()};
-  const runs = (await (await request.get(`/v0.1/ledger?project_id=${data.project_id}`, {headers})).json()).data.runs;
+  const runs = (await (await request.get(`/v1/ledger?project_id=${data.project_id}`, {headers})).json()).data.runs;
   const coordinator = data.agents[2];
   const run = runs.find((r: {agent_id: string}) => r.agent_id === coordinator.id);
-  await request.post(`/v0.1/projects/${data.project_id}/nexus:acquire`, {headers,
+  await request.post(`/v1/projects/${data.project_id}/nexus:acquire`, {headers,
     data: {agent_id: coordinator.id, run_id: run.id}});
   await expect(page.locator(".roster-card .nexus")).toHaveCount(1);
   await expect(page.getByRole("button", {name: "Coordinator, Nexus, main coordinator"})).toBeVisible();
-  await request.post(`/v0.1/projects/${data.project_id}/nexus:release`,
+  await request.post(`/v1/projects/${data.project_id}/nexus:release`,
     {headers: {...headers, "Idempotency-Key": crypto.randomUUID()}, data:{}});
   await expect(page.locator(".roster-card .nexus")).toHaveCount(0);
   await expect(page.locator(".roster-card .agent-name.teal")).toHaveCount(3);

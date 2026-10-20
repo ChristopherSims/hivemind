@@ -809,61 +809,61 @@ def install(app, service=None, principal=None, command=None, envelope=None, *, v
 
     def current_verifier():
         return getattr(app.state, "trusted_verifier", None) or domain.verifier
-    @app.post("/v0.1/verifications/{verification_id}:begin-correction")
+    @app.post("/v1/verifications/{verification_id}:begin-correction")
     async def verification_begin(verification_id: str, body: CorrectionBegin, p=Depends(principal),
                                  idempotency_key: str | None = Header(None)):
         return command(p, "verification-begin-correction:" + verification_id, idempotency_key, body,
                        lambda: domain.begin_correction(p, verification_id, body))
 
-    @app.post("/v0.1/verifications")
+    @app.post("/v1/verifications")
     async def verification_submit(body: VerificationSubmit, p=Depends(principal),
                                   idempotency_key: str | None = Header(None)):
         return _viewed(command(p, "verification-submit", idempotency_key, body,
                                lambda: domain.submit(p, body)), domain.view, p)
 
-    @app.get("/v0.1/verifications")
+    @app.get("/v1/verifications")
     async def verification_list(project_id: str, task_id: str | None = Query(None),
                                 status: str | None = Query(None), p=Depends(principal)):
         return envelope(domain.list(p, project_id, task_id, status))
 
-    @app.get("/v0.1/verifications/{verification_id}")
+    @app.get("/v1/verifications/{verification_id}")
     async def verification_get(verification_id: str, p=Depends(principal)):
         return envelope(domain.get(p, verification_id))
 
-    @app.post("/v0.1/verifications/{verification_id}:update")
+    @app.post("/v1/verifications/{verification_id}:update")
     async def verification_update(verification_id: str, body: VerificationUpdate, p=Depends(principal),
                                   idempotency_key: str | None = Header(None)):
         return _viewed(command(p, "verification-update:" + verification_id, idempotency_key, body,
                                lambda: domain.update_submission(p, verification_id, body)), domain.view, p)
 
-    @app.post("/v0.1/verifications/{verification_id}:assign-reviewer")
+    @app.post("/v1/verifications/{verification_id}:assign-reviewer")
     async def verification_assign(verification_id: str, body: ReviewerAssignment, p=Depends(principal),
                                   idempotency_key: str | None = Header(None)):
         return _viewed(command(p, "verification-assign:" + verification_id, idempotency_key, body,
                                lambda: domain.assign_reviewer(p, verification_id, body)), domain.view, p)
 
-    @app.post("/v0.1/verifications/{verification_id}:check")
+    @app.post("/v1/verifications/{verification_id}:check")
     async def verification_check(verification_id: str, body: TrustedCheck, p=Depends(principal),
                                  idempotency_key: str | None = Header(None)):
         return _viewed(command(p, "verification-check:" + verification_id, idempotency_key, body,
                                lambda: domain.record_check(p, verification_id, body, current_verifier())),
                        domain.view, p)
 
-    @app.post("/v0.1/verifications/{verification_id}:decide")
+    @app.post("/v1/verifications/{verification_id}:decide")
     async def verification_decide(verification_id: str, body: ReviewDecision, p=Depends(principal),
                                   idempotency_key: str | None = Header(None)):
         return _viewed(command(p, "verification-decide:" + verification_id, idempotency_key, body,
                                lambda: domain.decide(p, verification_id, body)), domain.view, p)
 
-    @app.get("/v0.1/verifications/{verification_id}/corrections")
+    @app.get("/v1/verifications/{verification_id}/corrections")
     async def verification_corrections(verification_id: str, p=Depends(principal)):
         return envelope(domain.corrections(p, verification_id))
 
-    @app.get("/v0.1/corrections/{correction_id}")
+    @app.get("/v1/corrections/{correction_id}")
     async def correction_get(correction_id: str, p=Depends(principal)):
         return envelope(domain.correction(p, correction_id))
 
-    @app.post("/v0.1/corrections/{correction_id}:resolve")
+    @app.post("/v1/corrections/{correction_id}:resolve")
     async def correction_resolve(correction_id: str, body: CorrectionResolve, p=Depends(principal),
                                  idempotency_key: str | None = Header(None)):
         return _viewed(command(p, "correction-resolve:" + correction_id, idempotency_key, body,

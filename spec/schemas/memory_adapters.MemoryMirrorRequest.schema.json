@@ -1,0 +1,26 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "adapter": {
+      "enum": [
+        "mem0",
+        "langmem",
+        "letta"
+      ],
+      "title": "Adapter",
+      "type": "string"
+    },
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "adapter",
+    "expected_revision"
+  ],
+  "title": "MemoryMirrorRequest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

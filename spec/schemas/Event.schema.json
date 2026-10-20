@@ -73,7 +73,9 @@
         "hivemind.context.run.status_changed",
         "hivemind.context.run.ended",
         "hivemind.context.capture.gap_detected",
-        "hivemind.context.decision.recorded"
+        "hivemind.context.decision.recorded",
+        "hivemind.context.editor.buffer_observed",
+        "hivemind.context.editor.acp_observed"
       ],
       "title": "Type",
       "type": "string"
@@ -273,6 +275,90 @@
         "properties": {
           "data": {
             "$ref": "DecisionData.schema.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "hivemind.context.editor.buffer_observed"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "EditorBufferData.schema.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "hivemind.context.editor.acp_observed"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "AcpObservationData.schema.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "hivemind.context.editor.acp_observed"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "source": {
+            "properties": {
+              "attribution": {
+                "const": "reported"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "hivemind.context.editor.buffer_observed"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "source": {
+            "properties": {
+              "attribution": {
+                "const": "reported"
+              }
+            }
           }
         }
       }

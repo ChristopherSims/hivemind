@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "model_id": "REPLACE_WITH_LOCAL_LLM_ID",
+  "model_revision": "REPLACE_WITH_IMMUTABLE_MODEL_REVISION",
+  "tokenizer_sha256": "REPLACE_WITH_SHA256_OF_LOCAL_TOKENIZER_JSON",
+  "reference_source": "REPLACE_WITH_INDEPENDENT_MODEL_OR_PROVIDER_COUNT_REFERENCE",
+  "samples": [
+    {"id": "empty", "text": "", "expected_tokens": null},
+    {"id": "unicode", "text": "你好 café é مرحبا", "expected_tokens": null},
+    {"id": "code", "text": "def answer(x):\n    return x + 1\n", "expected_tokens": null},
+    {"id": "json", "text": "{\"role\":\"user\",\"content\":\"hello\"}", "expected_tokens": null},
+    {"id": "whitespace", "text": " a\tb\r\nc  ", "expected_tokens": null}
+  ]
+}

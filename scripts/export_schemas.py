@@ -25,15 +25,32 @@ def export():
         "agent.status_reported": "StatusData", "tool.started": "ToolStart", "tool.completed": "ToolEnd",
         "file.changed": "FileData", "run.status_changed": "RunStatus", "run.ended": "RunStatus",
         "capture.gap_detected": "GapData", "decision.recorded": "DecisionData",
+        "editor.buffer_observed": "EditorBufferData",
+        "editor.acp_observed": "AcpObservationData",
     }
     envelope["allOf"] = [{
         "if": {"properties": {"type": {"const": "hivemind.context." + suffix}}, "required": ["type"]},
         "then": {"properties": {"data": {"$ref": name + ".schema.json"}}},
     } for suffix, name in variants.items()]
+    envelope["allOf"].append({
+        "if": {"properties": {"type": {"const": "hivemind.context.editor.acp_observed"}}, "required": ["type"]},
+        "then": {"properties": {"source": {"properties": {"attribution": {"const": "reported"}}}}},
+    })
+    envelope["allOf"].append({
+        "if": {"properties": {"type": {"const": "hivemind.context.editor.buffer_observed"}}, "required": ["type"]},
+        "then": {"properties": {"source": {"properties": {"attribution": {"const": "reported"}}}}},
+    })
     (destination / "Event.schema.json").write_text(json.dumps(envelope, indent=2) + "\n", encoding="utf-8")
     import tempfile
     with tempfile.TemporaryDirectory() as directory:
-        app = create_app(directory, workers=False)
+        from hivemind.blocked_tasks import BlockedTasksPolicy
+        from hivemind.worker_provisioning import ProvisioningPolicy
+        from hivemind.memory_adapters import MemoryAdapterPolicy
+        # Document optional APIs without enabling any profile, process or model.
+        app = create_app(directory, workers=False, capability_options={
+            "blocked_tasks": {"policy": BlockedTasksPolicy(requests_enabled=True)},
+            "worker_provisioning": {"policy": ProvisioningPolicy(enabled=True)},
+            "memory_adapters": {"policy": MemoryAdapterPolicy(enabled=True)}})
         (root / "spec" / "openapi.json").write_text(json.dumps(app.openapi(), indent=2) + "\n", encoding="utf-8")
         app.state.indexes.close()
         app.state.store.close()
@@ -45,6 +62,21 @@ def constrain(schema):
     name = schema.get("title")
     if name == "Event":
         schema["properties"]["occurred_at"]["format"] = "date-time"
+    elif name == "AcpObservationData":
+        schema["allOf"] = [
+            {"if": {"properties": {"observation": {"enum": [
+                "tool_pending", "tool_in_progress", "tool_completed", "tool_failed"]}}},
+             "then": {"required": ["item_sha256"], "properties": {
+                 "item_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}}},
+            {"if": {"properties": {"observation": {"enum": ["file_read", "file_buffer_observed"]}}},
+             "then": {"required": ["path", "sha256", "byte_size"], "properties": {
+                 "path": {"type": "string"}, "sha256": {"type": "string"},
+                 "byte_size": {"type": "integer"}}}},
+            {"if": {"properties": {"observation": {"const": "file_buffer_observed"}}},
+             "then": {"required": ["editor_observation", "actor"], "properties": {
+                 "actor": {"const": "unattributed"},
+                 "editor_observation": {"enum": ["opened", "changed", "saved", "closed"]}}}},
+        ]
     elif name == "Content":
         schema["allOf"] = [{
             "if": {"properties": {"media_type": {"const": "application/vnd.hivemind.chat+json"}}},
@@ -72,7 +104,7 @@ def constrain(schema):
             "if": {"properties": {"match": {"const": "intersection"}}, "required": ["match"]},
             "then": {"required": ["agent_ids", "semantic_query"]},
         }]
-    elif name == "FileData":
+    elif name in ("FileData", "EditorBufferData"):
         schema["properties"]["path"]["pattern"] = r"^(?![/\\])(?!.*(?:^|[/\\])\.\.(?:[/\\]|$))(?!.*[:\u0000]).+$"
     return schema
 

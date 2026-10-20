@@ -123,7 +123,7 @@ def payload(task, run, refs=None, **overrides):
 
 def error_code(world, method, path, body=None, token=None, status=200):
     """Assert an exact protocol error code, so a denial cannot pass for the wrong reason."""
-    response = world.client.request(method, "/v0.1/" + path, json=body, headers={
+    response = world.client.request(method, "/v1/" + path, json=body, headers={
         "Authorization": "Bearer " + (token or world.owner), "Idempotency-Key": uid("key")})
     assert response.status_code == status, response.text
     return response.json()["error"]["code"]
@@ -538,12 +538,12 @@ def test_tampered_or_deleted_evidence_is_redacted_and_downgraded(world):
     assert "summary" not in tampered["reported"] and tampered["test_evidence"] == []
     assert tampered["reported_completion"] is True
 
-    # a deleted evidence post is treated the same way
+    # Source-gated permissions hide the verification entirely after deletion.
+    # Revision drift above is still readable and downgraded; missing/hidden
+    # sources must not leak through verification detail or list endpoints.
     world.call("DELETE", f"posts/{post['id']}", {"expected_revision": post["revision"]})
-    gone = world.call("GET", f"verifications/{body['id']}", token=token)
-    assert gone["evidence_unavailable"] is True and gone["effective_status"] == "pending"
-    assert world.call("GET", f"verifications?project_id={world.project}", token=token)["verifications"][0][
-        "evidence_unavailable"] is True
+    world.call("GET", f"verifications/{body['id']}", token=token, status=404)
+    assert world.call("GET", f"verifications?project_id={world.project}", token=token)["verifications"] == []
 
 
 def test_private_evidence_and_cross_project_reads_are_contained(world):
@@ -637,7 +637,7 @@ def test_install_accepts_explicit_host_collaborators(world):
     try:
         with TestClient(second) as client:
             headers = {"Authorization": "Bearer " + token, "Idempotency-Key": uid("key")}
-            response = client.post("/v0.1/verifications", json={
+            response = client.post("/v1/verifications", json={
                 "task_id": task["id"], "run_id": run["id"], "execution_id": task["execution"]["id"],
                 "completion_claimed": True, "summary": "Submitted through an explicitly wired app",
                 "artifact_refs": [{"kind": "artifact", "id": proof["id"], "revision": proof["revision"]}]},
@@ -646,10 +646,10 @@ def test_install_accepts_explicit_host_collaborators(world):
             created = response.json()["data"]
             assert created["status"] == "pending" and created["evidence_available"] is True
 
-            detail = client.get(f"/v0.1/verifications/{created['id']}", headers=headers)
+            detail = client.get(f"/v1/verifications/{created['id']}", headers=headers)
             assert detail.json()["data"]["task_id"] == task["id"]
-            assert client.get(f"/v0.1/verifications?project_id={world.project}").status_code == 401
-            assert client.get(f"/v0.1/verifications/{created['id']}",
+            assert client.get(f"/v1/verifications?project_id={world.project}").status_code == 401
+            assert client.get(f"/v1/verifications/{created['id']}",
                               headers={"Authorization": "Bearer wrong"}).status_code == 401
     finally:
         second.state.store.close()

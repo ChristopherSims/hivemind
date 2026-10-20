@@ -1,0 +1,61 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "nexus_agent_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Nexus Agent Id",
+      "type": "string"
+    },
+    "target_agent_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 64,
+      "minItems": 1,
+      "title": "Target Agent Ids",
+      "type": "array"
+    },
+    "actions": {
+      "items": {
+        "enum": [
+          "steer",
+          "pause",
+          "resume",
+          "cancel",
+          "assign_task",
+          "monitor"
+        ],
+        "type": "string"
+      },
+      "maxItems": 6,
+      "minItems": 1,
+      "title": "Actions",
+      "type": "array"
+    },
+    "ttl_seconds": {
+      "default": 3600,
+      "maximum": 86400,
+      "minimum": 10,
+      "title": "Ttl Seconds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "project_id",
+    "nexus_agent_id",
+    "target_agent_ids",
+    "actions"
+  ],
+  "title": "NexusGrantCreate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

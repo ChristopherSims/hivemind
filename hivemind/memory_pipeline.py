@@ -1186,15 +1186,15 @@ def install(app, service, principal, command, envelope, *, config=None, extracto
                                  "error": {"code": exc.code, "message": exc.code.replace("_", " "),
                                            "retryable": exc.status in (429, 503)}}, status_code=exc.status)
 
-    @app.post("/v0.1/memory-pipeline:enqueue")
+    @app.post("/v1/memory-pipeline:enqueue")
     async def pipeline_enqueue(body: EnqueueRequest, p=Depends(principal), idempotency_key: str | None = Header(None)):
         return command(p, "memory-pipeline-enqueue", idempotency_key, body, lambda: pipeline.enqueue(p, body))
 
-    @app.post("/v0.1/memory-pipeline:process")
+    @app.post("/v1/memory-pipeline:process")
     async def pipeline_process(body: ProcessRequest, p=Depends(principal), idempotency_key: str | None = Header(None)):
         return command(p, "memory-pipeline-process", idempotency_key, body, lambda: pipeline.process(p, body))
 
-    @app.post("/v0.1/memory-pipeline:tick")
+    @app.post("/v1/memory-pipeline:tick")
     async def pipeline_tick(body: TickRequest, p=Depends(principal), idempotency_key: str | None = Header(None)):
         def tick():
             if p["role"] != "admin":
@@ -1202,16 +1202,16 @@ def install(app, service, principal, command, envelope, *, config=None, extracto
             return pipeline.tick(body.limit)
         return command(p, "memory-pipeline-tick", idempotency_key, body, tick)
 
-    @app.get("/v0.1/memory-pipeline:jobs")
+    @app.get("/v1/memory-pipeline:jobs")
     async def pipeline_jobs(project_id: str, state: str = Query("", max_length=32),
                             limit: int = Query(50, ge=1, le=200), p=Depends(principal)):
         return envelope(pipeline.jobs(p, project_id, state=state or None, limit=limit))
 
-    @app.get("/v0.1/memory-pipeline:status")
+    @app.get("/v1/memory-pipeline:status")
     async def pipeline_status(project_id: str, p=Depends(principal)):
         return envelope(pipeline.status(p, project_id))
 
-    @app.get("/v0.1/memory-pipeline:suggestions")
+    @app.get("/v1/memory-pipeline:suggestions")
     async def pipeline_suggestions(project_id: str, kind: str = Query("", max_length=32),
                                    include_dismissed: bool = False, include_stale: bool = False,
                                    limit: int = Query(50, ge=1, le=200), p=Depends(principal)):
@@ -1219,19 +1219,19 @@ def install(app, service, principal, command, envelope, *, config=None, extracto
                                              include_dismissed=include_dismissed,
                                              include_stale=include_stale, limit=limit))
 
-    @app.post("/v0.1/memory-pipeline/suggestions/{suggestion_id}:dismiss")
+    @app.post("/v1/memory-pipeline/suggestions/{suggestion_id}:dismiss")
     async def pipeline_dismiss(suggestion_id: str, body: SuggestionDismiss, p=Depends(principal),
                                idempotency_key: str | None = Header(None)):
         return command(p, "memory-pipeline-dismiss:" + suggestion_id, idempotency_key, body,
                        lambda: pipeline.dismiss_suggestion(p, suggestion_id, body))
 
-    @app.post("/v0.1/memory-pipeline:freshness")
+    @app.post("/v1/memory-pipeline:freshness")
     async def pipeline_freshness(body: FreshnessRequest, p=Depends(principal),
                                  idempotency_key: str | None = Header(None)):
         return command(p, "memory-pipeline-freshness", idempotency_key, body,
                        lambda: pipeline.freshness(p, body))
 
-    @app.post("/v0.1/memory-pipeline:retrieve")
+    @app.post("/v1/memory-pipeline:retrieve")
     async def pipeline_retrieve(body: RetrievalFilterRequest, p=Depends(principal)):
         return envelope(pipeline.retrieval_filter(p, body))
 

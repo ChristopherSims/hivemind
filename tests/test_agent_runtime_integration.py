@@ -113,7 +113,7 @@ def test_context_endpoint_counts_its_actual_envelope_and_rejects_tiny_budget(wor
     agent = world.agent()
     body = {"project_id": world.project, "agent_selector": {"agent_ids": [agent["id"]]},
             "token_budget": 6000}
-    response = world.client.post("/v0.1/context:assemble", json=body,
+    response = world.client.post("/v1/context:assemble", json=body,
                                  headers={"Authorization": "Bearer " + world.owner})
     assert response.status_code == 200
     packet = response.json()

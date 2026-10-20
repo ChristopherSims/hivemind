@@ -983,7 +983,7 @@ class ReconcileRequest(m.Model):
     update_baseline: bool = False
 
 
-def install(app, service, principal, command=None, envelope=None, *, path="/v0.1/runtime",
+def install(app, service, principal, command=None, envelope=None, *, path="/v1/runtime",
             transport_factory=None):
     """Register opt-in runtime lifecycle routes on an existing application.
 

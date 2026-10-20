@@ -1,0 +1,115 @@
+{
+  "$defs": {
+    "WorkerPermissionRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_tools": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Allowed Tools",
+          "type": "array"
+        },
+        "read_paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Read Paths",
+          "type": "array"
+        },
+        "write_paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Write Paths",
+          "type": "array"
+        },
+        "allow_coordination_mcp": {
+          "default": true,
+          "title": "Allow Coordination Mcp",
+          "type": "boolean"
+        }
+      },
+      "title": "WorkerPermissionRequest",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "profile": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Profile",
+      "type": "string"
+    },
+    "display_name": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Display Name",
+      "type": "string"
+    },
+    "instructions": {
+      "maxLength": 65536,
+      "minLength": 1,
+      "title": "Instructions",
+      "type": "string"
+    },
+    "max_runtime_seconds": {
+      "default": 300,
+      "maximum": 604800,
+      "minimum": 1,
+      "title": "Max Runtime Seconds",
+      "type": "integer"
+    },
+    "scope_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 32,
+      "title": "Scope Ids",
+      "type": "array"
+    },
+    "coordinator_epoch": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Coordinator Epoch"
+    },
+    "start": {
+      "default": true,
+      "title": "Start",
+      "type": "boolean"
+    },
+    "permissions": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/WorkerPermissionRequest"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "profile",
+    "display_name",
+    "instructions"
+  ],
+  "title": "WorkerCreate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

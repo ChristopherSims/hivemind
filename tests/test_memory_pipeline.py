@@ -72,7 +72,7 @@ class PipelineWorld:
         self.stack.close()
 
     def call(self, method, path, body=None, token=None, key=None, status=200):
-        response = self.client.request(method, "/v0.1/" + path, json=body, headers={
+        response = self.client.request(method, "/v1/" + path, json=body, headers={
             "Authorization": "Bearer " + (token or self.owner), "Idempotency-Key": key or uid("key")})
         assert response.status_code == status, response.text
         return response.json().get("data", response.json())
@@ -692,10 +692,10 @@ def test_install_provides_an_error_envelope_on_a_bare_app(tmp_path):
         install(app, service, principal, command, envelope, config=PipelineConfig(enabled=True))
         with TestClient(app) as client:
             headers = {"Authorization": "Bearer " + config["token"]}
-            status = client.get(f"/v0.1/memory-pipeline:status?project_id={config['project_id']}",
+            status = client.get(f"/v1/memory-pipeline:status?project_id={config['project_id']}",
                                 headers=headers)
             assert status.status_code == 200 and status.json()["data"]["enabled"] is True
-            missing = client.get("/v0.1/memory-pipeline:status?project_id=project_missing", headers=headers)
+            missing = client.get("/v1/memory-pipeline:status?project_id=project_missing", headers=headers)
             assert missing.status_code == 404 and missing.json()["error"]["code"] == "not_found"
     finally:
         store.close()
@@ -713,7 +713,7 @@ def test_capability_registry_installs_the_pipeline_disabled(tmp_path, monkeypatc
     assert app.state.memory_pipeline.config.enabled is False
     with TestClient(app) as client:
         headers = {"Authorization": "Bearer " + config["token"], "Idempotency-Key": uid("key")}
-        response = client.post("/v0.1/memory-pipeline:enqueue", headers=headers, json={
+        response = client.post("/v1/memory-pipeline:enqueue", headers=headers, json={
             "project_id": config["project_id"], "agent_id": "agent_missing",
             "source_refs": [{"kind": "board_post", "id": "post_missing"}]})
         assert response.status_code == 409
@@ -729,10 +729,10 @@ def test_install_coexists_with_the_standard_app(builder):
     assert world.call("GET", f"memories?project_id={world.project}", token=token)[0]["id"] == memory["id"]
     assert world.app.state.memory_pipeline is world.pipeline
     paths = {route.path for route in world.app.routes}
-    assert "/v0.1/memory-pipeline:enqueue" in paths
-    # Pipeline routes live outside the /v0.1/memories/{memory_id} namespace so no standard
+    assert "/v1/memory-pipeline:enqueue" in paths
+    # Pipeline routes live outside the /v1/memories/{memory_id} namespace so no standard
     # route is shadowed by registration order.
-    assert not any(path.startswith("/v0.1/memories/") and "pipeline" in path for path in paths)
+    assert not any(path.startswith("/v1/memories/") and "pipeline" in path for path in paths)
 
 
 def test_git_snapshot_is_read_only_and_refuses_non_repositories(builder, tmp_path):

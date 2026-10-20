@@ -16,7 +16,7 @@ def test_runtime_hook_edit_capture_and_fail_closed(world, tmp_path, monkeypatch,
         def __init__(self, base_url, token):
             self.token = token
         def request(self, method, path, body=None, key=None):
-            response = world.client.request(method, "/v0.1/" + path, json=body, headers={
+            response = world.client.request(method, "/v1/" + path, json=body, headers={
                 "Authorization": "Bearer " + self.token, "Idempotency-Key": key or "test-" + str(id(body))})
             response.raise_for_status()
             return response.json()["data"]
@@ -69,7 +69,7 @@ def test_steering_is_not_applied_until_replacement_work_begins(
         def __init__(self, base_url, token):
             self.token = token
         def request(self, method, path, body=None, key=None):
-            response = world.client.request(method, "/v0.1/" + path, json=body, headers={
+            response = world.client.request(method, "/v1/" + path, json=body, headers={
                 "Authorization": "Bearer " + self.token, "Idempotency-Key": key or uid("key")})
             response.raise_for_status()
             return response.json()["data"]

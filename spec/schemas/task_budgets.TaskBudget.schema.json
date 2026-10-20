@@ -1,0 +1,90 @@
+{
+  "additionalProperties": false,
+  "description": "A strict per-task budget. All fields explicit, non-negative, finite, and\ncoercion-free. ``output_reserve`` is the mandatory declared hard output maximum;\nzero would be an unbounded runtime claim and is rejected.",
+  "properties": {
+    "task_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "model_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "counter": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Counter",
+      "type": "string"
+    },
+    "token_budget": {
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Token Budget",
+      "type": "integer"
+    },
+    "seconds_budget": {
+      "exclusiveMinimum": 0,
+      "maximum": 86400,
+      "title": "Seconds Budget",
+      "type": "number"
+    },
+    "cost_budget": {
+      "minimum": 0,
+      "title": "Cost Budget",
+      "type": "number"
+    },
+    "enforce_cost": {
+      "default": true,
+      "title": "Enforce Cost",
+      "type": "boolean"
+    },
+    "currency": {
+      "maxLength": 32,
+      "minLength": 1,
+      "title": "Currency",
+      "type": "string"
+    },
+    "output_reserve": {
+      "maximum": 1000000000,
+      "minimum": 1,
+      "title": "Output Reserve",
+      "type": "integer"
+    },
+    "escalation_thresholds": {
+      "default": [
+        0.5,
+        0.8,
+        1.0
+      ],
+      "items": {
+        "type": "number"
+      },
+      "title": "Escalation Thresholds",
+      "type": "array"
+    }
+  },
+  "required": [
+    "task_id",
+    "project_id",
+    "model_id",
+    "counter",
+    "token_budget",
+    "seconds_budget",
+    "cost_budget",
+    "currency",
+    "output_reserve"
+  ],
+  "title": "TaskBudget",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

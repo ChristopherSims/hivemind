@@ -1,0 +1,61 @@
+{
+  "scenario": "offline-a2a-acp-full-chain-v1",
+  "real_encoder_demonstration": {
+    "platform": "Windows",
+    "passed": 1,
+    "seconds": 20.09,
+    "evidence": "full-chain-real-encoder-2026-10-17.json"
+  },
+  "final_regressions": {
+    "Windows": {
+      "passed": 118,
+      "failed": 0,
+      "seconds": 47.24,
+      "files": [
+        "tests/test_full_chain_demo.py",
+        "tests/test_core.py",
+        "tests/test_task_execution.py",
+        "tests/test_task_verification.py",
+        "tests/test_protocol_runtimes.py",
+        "tests/test_worker_recovery_integration.py",
+        "tests/test_agent_runtime_integration.py",
+        "tests/test_memory_lifecycle.py",
+        "tests/test_team_access.py"
+      ],
+      "diagnostic": "A loopback fixture request-handler exception header appeared during the passing suite; exit code was 0."
+    },
+    "Linux": {
+      "passed": 81,
+      "failed": 0,
+      "seconds": 29.62,
+      "image": "hivemind-runtime-tests:2026-10-17",
+      "network": "none; container-internal loopback only",
+      "temporary_storage": "private tmpfs",
+      "files": [
+        "tests/test_full_chain_demo.py",
+        "tests/test_protocol_runtimes.py",
+        "tests/test_worker_recovery_integration.py",
+        "tests/test_task_verification.py",
+        "tests/test_team_access.py"
+      ]
+    },
+    "timing_scope": "Final platform regressions ran concurrently; these times are not performance claims."
+  },
+  "checks": {
+    "ruff": "passed for new scenario and adjusted verification test",
+    "scoped_git_diff_check": "passed; Git emitted LF-to-CRLF working-copy warnings",
+    "production_code_changed_for_demo": false
+  },
+  "earlier_failures": [
+    "Mutable run evidence invalidated fixture memory on heartbeat; replaced by pinned board/artifact snapshots.",
+    "Windows peer newline translation failed the exact-byte check; peers now emit LF explicitly.",
+    "First broad regression: 98 passed, 1 failed because an old verification test expected readable deleted evidence. Updated test to assert current fail-closed 404/list-exclusion policy, with no production permission change."
+  ],
+  "separate_retrieval_functional_regression": {
+    "platform": "Linux",
+    "passed": 34,
+    "seconds": 15.26,
+    "real_10k_measurements": "blocked by preparation timeout"
+  },
+  "limitations": "See full-chain-README.txt; no live-vendor, process-crash, production-load or full-section-27 completion claim."
+}

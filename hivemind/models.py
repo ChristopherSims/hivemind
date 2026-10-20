@@ -92,6 +92,8 @@ class RunCreate(Model):
     agent_id: ID
     workspace_id: ID | None = None
     task_id: ID | None = None
+    purpose: Literal["task_worker", "observer", "auxiliary"] | None = None
+    runtime: Literal["factory", "oh_my_pi", "a2a", "acp"] | None = None
 
 
 class Heartbeat(Model):
@@ -121,6 +123,8 @@ class Event(Model):
         "hivemind.context.tool.completed", "hivemind.context.file.changed",
         "hivemind.context.run.status_changed", "hivemind.context.run.ended",
         "hivemind.context.capture.gap_detected", "hivemind.context.decision.recorded",
+        "hivemind.context.editor.buffer_observed",
+        "hivemind.context.editor.acp_observed",
     ]
     agent_id: ID
     run_id: ID
@@ -145,8 +149,14 @@ class Event(Model):
             "tool.completed": ToolEnd, "file.changed": FileData,
             "run.status_changed": RunStatus, "run.ended": RunStatus,
             "capture.gap_detected": GapData, "decision.recorded": DecisionData,
+            "editor.buffer_observed": EditorBufferData,
+            "editor.acp_observed": AcpObservationData,
         }
         suffix = self.type.removeprefix("hivemind.context.")
+        if suffix == "editor.buffer_observed" and self.source.attribution != "reported":
+            raise ValueError("Editor observations cannot claim confirmed filesystem effects")
+        if suffix == "editor.acp_observed" and self.source.attribution != "reported":
+            raise ValueError("ACP observations are reported, never canonical effect proof")
         self.data = classes[suffix].model_validate(self.data).model_dump(exclude_none=True)
         if suffix == "run.ended" and self.data["status"] not in ("completed", "failed", "cancelled"):
             raise ValueError("run.ended requires a terminal status")
@@ -174,6 +184,48 @@ class FileData(Model):
     _path = field_validator("path")(safe_path)
 
 
+class EditorBufferData(Model):
+    path: str = Field(min_length=1, max_length=4096)
+    observation: Literal["opened", "changed", "saved", "closed"]
+    sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    byte_size: int = Field(ge=0, le=1048576)
+    version: int = Field(ge=0)
+    _path = field_validator("path")(safe_path)
+class AcpPlanEntry(Model):
+    content_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    status: Literal["pending", "in_progress", "completed"]
+    priority: Literal["high", "medium", "low"]
+class AcpObservationData(Model):
+    session_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    connection_id: ID
+    delivery: Literal["live", "replay"]
+    observation: Literal[
+        "session_created", "session_loaded", "session_disconnected",
+        "turn_started", "turn_completed", "turn_uncertain",
+        "tool_pending", "tool_in_progress", "tool_completed", "tool_failed",
+        "plan", "file_read", "file_buffer_observed",
+    ]
+    actor: Literal["agent_reported", "editor_observed", "unattributed"] = "agent_reported"
+    editor_observation: Literal["opened", "changed", "saved", "closed"] | None = None
+    item_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    entries: list[AcpPlanEntry] = Field(default_factory=list, max_length=128)
+    path: str | None = Field(default=None, min_length=1, max_length=4096)
+    sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    byte_size: int | None = Field(default=None, ge=0, le=1048576)
+    _path = field_validator("path")(lambda value: safe_path(value) if value is not None else value)
+    @model_validator(mode="after")
+    def complete_observation(self):
+        if self.observation.startswith("tool_") and self.item_sha256 is None:
+            raise ValueError("Tool observations require a hashed call identity")
+        if self.observation in ("file_read", "file_buffer_observed") and any(
+                value is None for value in (self.path, self.sha256, self.byte_size)):
+            raise ValueError("File observations require path and content metadata")
+        if self.observation == "file_buffer_observed" and (
+                self.editor_observation is None or self.actor != "unattributed"):
+            raise ValueError("Ambient buffer changes cannot claim agent authorship")
+        return self
+
+
 class RunStatus(Model):
     status: Literal["running", "idle", "waiting_input", "blocked", "paused", "completed", "failed", "cancelled"]
     expected_revision: int = Field(ge=1)
@@ -193,11 +245,25 @@ class Batch(Model):
     events: list[dict] = Field(min_length=1, max_length=100)
 
 
+class TaskRoutingRequirements(Model):
+    required_runtime: Literal["factory", "oh_my_pi", "a2a", "acp"] | None = None
+    required_tools: list[Annotated[str, Field(min_length=1, max_length=64)]] = Field(
+        default_factory=list, max_length=32)
+    strict_sandbox: bool = False
+
+    @model_validator(mode="after")
+    def unique_tools(self):
+        if len(set(self.required_tools)) != len(self.required_tools):
+            raise ValueError("Required tools must be unique")
+        return self
+
+
 class TaskCreate(Model):
     project_id: ID
     title: str = Field(min_length=1, max_length=512)
     description: str = Field(default="", max_length=65536)
     scope_ids: list[ID] = Field(default_factory=list, max_length=32)
+    routing: TaskRoutingRequirements | None = None
 class TaskStart(Model):
     expected_revision: int = Field(ge=1)
     run_id: ID

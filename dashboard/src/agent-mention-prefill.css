@@ -1,0 +1,87 @@
+/*
+ * Optional agent-tab mention prefill control. Selectors are scoped under
+ * `.agent-prefill` and carry token fallbacks so the control still renders when
+ * tokens.css is not loaded (e.g. in the isolated harness). No rule here changes
+ * audience, visibility, or composer layout owned by style.css.
+ */
+
+.agent-prefill {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #2b394b);
+  border-radius: 10px;
+  background: var(--raised, #192637);
+  color: var(--text, #e8eef7);
+  font-size: 11px;
+}
+
+.agent-prefill-audience {
+  margin: 0;
+  color: var(--muted, #a0aec1);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+}
+
+.agent-prefill-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.agent-prefill-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.agent-prefill-switch input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--accent-text, #a9dcc1);
+}
+
+.agent-prefill-add,
+.agent-prefill-open {
+  padding: 5px 9px;
+  border: 1px solid var(--border, #2b394b);
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+}
+
+.agent-prefill-add {
+  border-color: var(--accent-border, #a9dcc1);
+  color: var(--accent-text, #a9dcc1);
+}
+
+.agent-prefill-add:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.agent-prefill-switch input:focus-visible,
+.agent-prefill-add:focus-visible,
+.agent-prefill-open:focus-visible {
+  outline: 2px solid var(--focus, #a9dcc1);
+  outline-offset: 2px;
+}
+
+.agent-prefill-note {
+  min-height: 14px;
+  margin: 0;
+  color: var(--muted, #a0aec1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-prefill,
+  .agent-prefill * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

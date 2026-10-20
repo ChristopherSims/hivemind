@@ -1,0 +1,47 @@
+/* Privacy & audit screens. Mirrors the dashboard's existing panel vocabulary. */
+.pa-root { padding: 16px 24px 48px; max-width: 960px; }
+.pa-tabs { display: flex; gap: 8px; margin: 12px 0 20px; }
+.pa-tabs button {
+  border: 1px solid var(--line, #2c3242); background: transparent; color: inherit;
+  padding: 6px 14px; border-radius: 999px; cursor: pointer;
+}
+.pa-tabs button.selected { background: var(--accent, #4f7cff); border-color: transparent; color: #fff; }
+.pa-panel h2 { font-size: 15px; margin: 20px 0 8px; }
+.pa-panel ul { list-style: none; margin: 0; padding: 0; }
+.pa-panel li {
+  border: 1px solid var(--line, #2c3242); border-radius: 10px;
+  padding: 10px 14px; margin-bottom: 8px;
+}
+.pa-badge {
+  display: inline-block; font-size: 11px; padding: 1px 8px; margin-left: 6px;
+  border: 1px solid var(--line, #2c3242); border-radius: 999px; vertical-align: middle;
+}
+.pa-badge.pa-ok { color: #3fb27f; border-color: #3fb27f; }
+.pa-badge.pa-off { color: #b0533f; border-color: #b0533f; }
+.pa-warning { color: #d9a13b; }
+.pa-status { color: #3fb27f; }
+.pa-disabled { opacity: 0.75; }
+.pa-grants { margin-top: 6px; font-size: 13px; }
+.pa-link {
+  background: none; border: none; color: var(--accent, #4f7cff);
+  cursor: pointer; padding: 0 4px; text-decoration: underline;
+}
+.pa-danger {
+  border: 1px solid #b0533f; background: transparent; color: #b0533f;
+  padding: 6px 14px; border-radius: 8px; cursor: pointer;
+}
+.pa-danger:disabled { opacity: 0.4; cursor: default; }
+.pa-preview {
+  border: 1px solid var(--line, #2c3242); border-radius: 10px;
+  padding: 12px 16px; margin-top: 12px;
+}
+.pa-preview ul { list-style: disc; padding-left: 20px; }
+.pa-preview li { border: none; padding: 0; margin-bottom: 4px; }
+.pa-panel label { display: block; margin: 12px 0 8px; font-size: 13px; }
+.pa-panel input, .pa-panel select {
+  display: block; margin-top: 4px; min-width: 320px; padding: 6px 8px;
+  background: transparent; color: inherit; border: 1px solid var(--line, #2c3242);
+  border-radius: 6px;
+}
+.pa-panel button { cursor: pointer; }
+.pa-panel button:disabled { cursor: default; opacity: 0.5; }

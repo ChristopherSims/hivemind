@@ -50,7 +50,7 @@ def test_identity_paths_origin_and_protocol(world):
     evt["data"]["path"] = "src/ok"
     evt["protocol_version"] = "9.0"
     assert world.call("POST", "events:batch", {"events": [evt]}, token)[0]["error"] == "invalid_request"
-    response = world.client.post("/v0.1/session", headers={
+    response = world.client.post("/v1/session", headers={
         "Authorization": "Bearer " + world.owner, "Origin": "https://attacker.example"}, json={})
     assert response.status_code == 403
     world.call("POST", "events:batch", {"events": [event(world, a, run)]}, token, status=200)
@@ -167,7 +167,7 @@ def test_cross_project_and_safe_errors(world):
                  f"ledger?project_id={world.project}"):
         world.call("GET", path, token=token, status=404)
     world.call("POST", "search", {"project_id": world.project, "query": "private"}, token, status=404)
-    response = world.client.post("/v0.1/memories", headers={"Authorization": "Bearer " + token},
+    response = world.client.post("/v1/memories", headers={"Authorization": "Bearer " + token},
                                  json={"secret": "DO_NOT_ECHO_ME"})
     assert response.status_code == 422 and "DO_NOT_ECHO_ME" not in response.text
     assert store.db.execute("SELECT count(*) FROM jobs WHERE resource=?", (post["id"],)).fetchone()[0] == 2
@@ -230,10 +230,10 @@ def test_graph_replay_and_deleted_evidence(world):
 
 def test_session_csrf_and_no_html_api_fallback(world):
     result = world.call("POST", "session", {})
-    response = world.client.post(f"/v0.1/boards/{world.board()['id']}/posts", json={})
+    response = world.client.post(f"/v1/boards/{world.board()['id']}/posts", json={})
     assert response.status_code == 403
     assert "csrf_token" in result
-    assert world.client.get("/v0.1/no-such-route").status_code == 404
+    assert world.client.get("/v1/no-such-route").status_code == 404
 
 
 def test_stale_presence_is_not_task_failure(world):

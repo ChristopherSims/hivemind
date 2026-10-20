@@ -40,6 +40,8 @@ __all__ = [
     "SensitivePayload",
     "UnknownOutcome",
     "WorkspaceViolation",
+    "RECOVERY_CLASSIFICATIONS",
+    "RECOVERY_DECISIONS",
     "command_key",
     "contained_path",
     "derive_operation_id",
@@ -93,7 +95,24 @@ CREATE TABLE IF NOT EXISTS checkpoint_files(
   exists_flag INTEGER NOT NULL,
   PRIMARY KEY(checkpoint_id, path)
 );
+CREATE TABLE IF NOT EXISTS recovery_audit(
+  id INTEGER PRIMARY KEY,
+  operation_id TEXT NOT NULL,
+  classification TEXT NOT NULL,
+  decision TEXT,
+  evidence_sha256 TEXT,
+  detail TEXT,
+  recorded_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS recovery_audit_operation ON recovery_audit(operation_id);
 """
+
+#: Evidence classifications a recovery reconciler may record. ``ambiguous`` is the
+#: only bucket that carries no proof; ``stale_replaced`` means the canonical record
+#: moved on (a newer execution/revision), so the old attempt must never be retried.
+RECOVERY_CLASSIFICATIONS = frozenset(
+    {"proved_applied", "proved_not_attempted", "ambiguous", "stale_replaced"})
+RECOVERY_DECISIONS = frozenset({"completed", "not_applied"})
 
 _CREDENTIAL_TEXT = re.compile(
     r"(?i)(bearer\s+[\w.\-]{6,}|-----BEGIN [^-]*PRIVATE KEY-----|"
@@ -350,6 +369,55 @@ class Journal:
                             "WHERE operation_id=?",
                             (COMPLETED if decision == "completed" else PENDING, result, now(), operation_id))
         return self.operation(operation_id)
+
+    def record_recovery_audit(self, operation_id, classification, evidence, *,
+                              decision=None, detail=None):
+        """Append one durable recovery-audit record. Never resolves anything by itself.
+
+        ``classification`` is one of ``RECOVERY_CLASSIFICATIONS``; ``decision`` (when a
+        resolution followed the evidence) is one of ``RECOVERY_DECISIONS``. ``evidence``
+        must be a non-sensitive mapping identifying this exact operation; only its
+        SHA-256 is stored, mirroring :meth:`resolve_unknown`. ``detail`` is an optional
+        bounded, redacted mapping (identity fields and status codes, never payloads).
+        """
+        operation_id = str(operation_id)
+        if classification not in RECOVERY_CLASSIFICATIONS:
+            raise ValueError("classification must be one of " + ", ".join(sorted(RECOVERY_CLASSIFICATIONS)))
+        if decision is not None and decision not in RECOVERY_DECISIONS:
+            raise ValueError("decision must be one of " + ", ".join(sorted(RECOVERY_DECISIONS)))
+        if not isinstance(evidence, dict) or evidence.get("operation_id") != operation_id \
+                or looks_sensitive(evidence):
+            raise ValueError("Non-sensitive evidence must identify this exact operation")
+        if detail is not None:
+            if not isinstance(detail, dict) or looks_sensitive(detail):
+                raise ValueError("detail must be a non-sensitive mapping")
+            detail_json = redact(canonical(redact_value(detail)))[:4096]
+        else:
+            detail_json = None
+        proof = hashlib.sha256(canonical(evidence).encode()).hexdigest()
+        stamp = now()
+        with self.lock, self._transaction():
+            self.db.execute(
+                "INSERT INTO recovery_audit(operation_id, classification, decision, "
+                "evidence_sha256, detail, recorded_at) VALUES(?,?,?,?,?,?)",
+                (operation_id, classification, decision, proof, detail_json, stamp))
+        record = {"operation_id": operation_id, "classification": classification,
+                  "decision": decision, "evidence_sha256": proof, "recorded_at": stamp}
+        self._emit("recovery_audit", record)
+        return record
+
+    def recovery_audits(self, operation_id=None, limit=200):
+        """Durable recovery-audit records, newest first."""
+        with self.lock:
+            if operation_id is None:
+                rows = self.db.execute(
+                    "SELECT * FROM recovery_audit ORDER BY id DESC LIMIT ?",
+                    (int(limit),)).fetchall()
+            else:
+                rows = self.db.execute(
+                    "SELECT * FROM recovery_audit WHERE operation_id=? ORDER BY id DESC LIMIT ?",
+                    (str(operation_id), int(limit))).fetchall()
+        return [{**dict(row), "detail": _parse(row["detail"])} for row in rows]
 
     def begin_operation(self, operation_id, method, path, body=None, *, safe_to_retry=None,
                         allow_sensitive_payload=False, label=None):

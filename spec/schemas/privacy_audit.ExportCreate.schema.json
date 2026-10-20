@@ -1,0 +1,18 @@
+{
+  "additionalProperties": false,
+  "description": "Explicit reviewed confirmation binds the export to this exact project.",
+  "properties": {
+    "confirmation": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Confirmation",
+      "type": "string"
+    }
+  },
+  "required": [
+    "confirmation"
+  ],
+  "title": "ExportCreate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

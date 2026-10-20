@@ -58,7 +58,7 @@ class Harness:
         self.service = app.state.service
 
     def request(self, method, path, body=None, token=None, key=None):
-        return self.client.request(method, "/v0.1/" + path, json=body, headers={
+        return self.client.request(method, "/v1/" + path, json=body, headers={
             "Authorization": "Bearer " + (token or self.owner), "Idempotency-Key": key or uid("key")})
 
     def call(self, method, path, body=None, token=None, key=None, status=200):
@@ -516,7 +516,7 @@ def test_domain_class_commits_within_a_service_transaction(tmp_path):
 
 def test_main_application_wiring(world):
     paths = {getattr(route, "path", "") for route in world.app.routes}
-    if "/v0.1/task-plans" not in paths:
+    if "/v1/task-plans" not in paths:
         pytest.skip("api.py does not install hivemind.scheduling yet")
     agent = world.agent("Wired worker")
     token = world.credential(agent)

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "status": "failed",
+  "evidence_source": "Captured execution result for the 2026-10-17 10000-record run; the initial harness failed before writing its normal report",
+  "requested_scale": 10000,
+  "encoder": "Synthetic SHAKE-256 normalized vectors",
+  "exit_code": 1,
+  "failure_stage": "Initial index job completion check",
+  "exception_type": "RuntimeError",
+  "exception_message": "Incomplete index jobs: 6313",
+  "incomplete_jobs": 6313,
+  "tool_elapsed_seconds": 178.8,
+  "indexing_latency": null,
+  "search_latency": null,
+  "graph_rebuild_equivalent": null,
+  "graph_buffer_pool_mib": 64,
+  "root_cause": "A follow-up 5000-record graph-only diagnostic reproduced fixed-buffer exhaustion",
+  "diagnostic_graph_jobs_completed": 3610,
+  "diagnostic_exception": "Buffer manager exception: Unable to allocate memory! The buffer pool is full and no memory could be freed!",
+  "interpretation": "The default 64 MiB graph budget did not support this workload. Not a successful 10000-record capacity result."
+}

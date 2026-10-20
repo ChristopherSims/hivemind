@@ -1,0 +1,76 @@
+{
+  "additionalProperties": false,
+  "description": "Opt-in, typed, bounded per-project coordination policy.\n\nEvery field has hard bounds so a policy can never request unbounded retries,\nunbounded scans, or zero-cost automation. Defaults are the safest posture:\ndisabled, no automatic reassignment, no automatic dead-lettering, and a required\ncoordinator lease for non-admin ticks.",
+  "properties": {
+    "enabled": {
+      "default": false,
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "max_escalations": {
+      "default": 2,
+      "maximum": 5,
+      "minimum": 0,
+      "title": "Max Escalations",
+      "type": "integer"
+    },
+    "escalation_cooldown_seconds": {
+      "default": 60,
+      "maximum": 86400,
+      "minimum": 0,
+      "title": "Escalation Cooldown Seconds",
+      "type": "integer"
+    },
+    "attempt_deadline_seconds": {
+      "default": 900,
+      "maximum": 86400,
+      "minimum": 30,
+      "title": "Attempt Deadline Seconds",
+      "type": "integer"
+    },
+    "dead_letter_after_escalations": {
+      "default": 2,
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Dead Letter After Escalations",
+      "type": "integer"
+    },
+    "max_reassignments": {
+      "default": 2,
+      "maximum": 10,
+      "minimum": 0,
+      "title": "Max Reassignments",
+      "type": "integer"
+    },
+    "auto_reassign": {
+      "default": false,
+      "title": "Auto Reassign",
+      "type": "boolean"
+    },
+    "auto_dead_letter": {
+      "default": false,
+      "title": "Auto Dead Letter",
+      "type": "boolean"
+    },
+    "strict_resources": {
+      "default": false,
+      "title": "Strict Resources",
+      "type": "boolean"
+    },
+    "require_coordinator_lease": {
+      "default": true,
+      "title": "Require Coordinator Lease",
+      "type": "boolean"
+    },
+    "conflict_cooldown_seconds": {
+      "default": 30,
+      "maximum": 3600,
+      "minimum": 0,
+      "title": "Conflict Cooldown Seconds",
+      "type": "integer"
+    }
+  },
+  "title": "PolicyUpdate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

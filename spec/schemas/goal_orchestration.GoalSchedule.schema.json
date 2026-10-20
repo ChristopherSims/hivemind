@@ -1,0 +1,69 @@
+{
+  "additionalProperties": false,
+  "description": "Explicit operator configuration for background goal ticks; default off.",
+  "properties": {
+    "enabled": {
+      "default": false,
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "operator_principal_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Operator Principal Id"
+    },
+    "project_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Project Ids",
+      "type": "array"
+    },
+    "interval_seconds": {
+      "default": 10,
+      "maximum": 300,
+      "minimum": 1,
+      "title": "Interval Seconds",
+      "type": "number"
+    },
+    "tick_limit": {
+      "default": 8,
+      "maximum": 64,
+      "minimum": 1,
+      "title": "Tick Limit",
+      "type": "integer"
+    },
+    "dispatch": {
+      "default": true,
+      "title": "Dispatch",
+      "type": "boolean"
+    },
+    "revise_failed": {
+      "default": false,
+      "title": "Revise Failed",
+      "type": "boolean"
+    },
+    "max_plan_revisions": {
+      "default": 4,
+      "maximum": 20,
+      "minimum": 1,
+      "title": "Max Plan Revisions",
+      "type": "integer"
+    }
+  },
+  "title": "GoalSchedule",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

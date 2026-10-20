@@ -19,6 +19,8 @@ type BoardItem = {id: string; revision: number; content: {text?: string}};
 export function MemoryReview({project}: {project: string}) {
   const [queue, setQueue] = useState<Queue>({memories: [], proposals: [], disputes: []});
   const [evidence, setEvidence] = useState<BoardItem[]>([]);
+  const [boards, setBoards] = useState<{id: string; title: string}[]>([]);
+  const [evidenceBoard, setEvidenceBoard] = useState("");
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -47,12 +49,14 @@ export function MemoryReview({project}: {project: string}) {
       try {
         const [data, boards] = await Promise.all([
           api<Queue>(`memories/review-queue?project_id=${encodeURIComponent(project)}`),
-          api<{id: string}[]>(`boards?project_id=${encodeURIComponent(project)}`),
+          api<{id: string; title: string}[]>(`boards?project_id=${encodeURIComponent(project)}`),
         ]);
-        const posts = boards[0] ? await api<{items: BoardItem[]}>(`boards/${boards[0].id}/posts`) : {items: []};
+        const selected = boards.find(item => item.id === evidenceBoard)
+          ?? boards.find(item => item.title === "Main board") ?? boards[0];
+        const posts = selected ? await api<{items: BoardItem[]}>(`boards/${selected.id}/posts`) : {items: []};
         const versions = historyId ? await api<Memory[]>(`memories/${historyId}/versions`).catch(() => []) : null;
         if (!disposed) {
-          setQueue(data); setEvidence(posts.items); setError("");
+          setQueue(data); setEvidence(posts.items); setBoards(boards); setEvidenceBoard(selected?.id ?? ""); setError("");
           if (versions) setHistory(versions);
           setEditing(previous => previous && data.memories.some(item =>
             item.id === previous.id && item.revision === previous.revision) ? previous : null);
@@ -67,7 +71,7 @@ export function MemoryReview({project}: {project: string}) {
     void load();
     const timer = window.setInterval(() => void load(), 5000);
     return () => { disposed = true; window.clearInterval(timer); };
-  }, [project, historyId]);
+  }, [project, historyId, evidenceBoard]);
 
   async function change(path: string, body: unknown, requiresReason = true) {
     if (requiresReason && !reason.trim()) { setError("Enter a review reason before deciding."); return; }
@@ -96,6 +100,9 @@ export function MemoryReview({project}: {project: string}) {
       Expiry excludes retrieval immediately; it does not erase stored history.</p>
     {error && <div className="error" role="alert">{error}</div>}
     <div className="memory-toolbar">
+      {boards.length > 1 && <label>Evidence board<select aria-label="Evidence board" value={evidenceBoard} disabled={busy}
+        onChange={e => { setEvidenceBoard(e.target.value); setEvidence([]); setSource(""); setDisputeSource(""); }}>
+        {boards.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>}
       <label>Memory status <select aria-label="Memory status" value={filter} onChange={e => setFilter(e.target.value)}>
         {["all", "proposed", "verified", "disputed", "expired", "not_yet_valid", "rejected", "superseded"].map(value =>
           <option key={value} value={value}>{value.replaceAll("_", " ")}</option>)}</select></label>

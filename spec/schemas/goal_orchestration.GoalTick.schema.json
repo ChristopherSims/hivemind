@@ -1,0 +1,46 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_epoch": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Epoch"
+    },
+    "coordinator_epoch": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Coordinator Epoch"
+    },
+    "limit": {
+      "default": 8,
+      "maximum": 64,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    },
+    "dispatch": {
+      "default": true,
+      "title": "Dispatch",
+      "type": "boolean"
+    }
+  },
+  "title": "GoalTick",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

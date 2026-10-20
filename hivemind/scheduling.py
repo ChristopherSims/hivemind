@@ -102,10 +102,12 @@ class PlannedTask(m.Model):
     description: str = Field(default="", max_length=65536)
     scope_ids: list[ID] = Field(default_factory=list, max_length=32)
     depends_on: list[str] = Field(default_factory=list, max_length=64)
+    external_dependency_ids: list[ID] = Field(default_factory=list, max_length=64)
     priority: int = Field(default=DEFAULT_PRIORITY, ge=0, le=MAX_PRIORITY)
     required_capabilities: list[Capability] = Field(default_factory=list, max_length=32)
     max_attempts: int = Field(default=DEFAULT_MAX_ATTEMPTS, ge=1, le=MAX_ATTEMPTS_LIMIT)
     require_verified_dependencies: bool = False
+    routing: m.TaskRoutingRequirements | None = None
 
     _clean_key = field_validator("key", mode="before")(strip_text)
     _clean_title = field_validator("title", mode="before")(strip_text)
@@ -114,9 +116,12 @@ class PlannedTask(m.Model):
 
     @model_validator(mode="after")
     def consistent(self):
+        if len(self.depends_on) + len(self.external_dependency_ids) > 64:
+            raise ValueError("Combined task dependencies must not exceed 64")
         if self.key in self.depends_on:
             raise ValueError("A plan task cannot depend on itself")
         for values, label in ((self.depends_on, "Dependencies"),
+                              (self.external_dependency_ids, "External dependencies"),
                               (self.scope_ids, "Scope IDs"),
                               (self.required_capabilities, "Required capabilities")):
             if len(set(values)) != len(values):
@@ -303,6 +308,8 @@ class Scheduling:
         for step in order:
             for scope in step.scope_ids:
                 self.service.reference(principal, request.project_id, scope, "scope")
+            for dependency in step.external_dependency_ids:
+                self.service.reference(principal, request.project_id, dependency, "task")
         plan_id = uid("task_plan")
         identifiers = {step.key: uid("task") for step in order}
         created = {}
@@ -320,8 +327,9 @@ class Scheduling:
                 "plan_id": plan_id,
                 "plan_key": step.key,
                 "plan_order": index,
-                "depends_on": [identifiers[key] for key in step.depends_on],
+                "depends_on": [identifiers[key] for key in step.depends_on] + list(step.external_dependency_ids),
                 "require_verified_dependencies": step.require_verified_dependencies,
+                **({"routing": step.routing.model_dump()} if step.routing is not None else {}),
                 "scheduling": scheduling_defaults(),
             })
             for scope in step.scope_ids:
@@ -367,6 +375,13 @@ class Scheduling:
                 current = self.store.get(dependency, principal, "task")
                 if current["status"] != "completed":
                     return False
+                for gate in getattr(self.service, "task_dependency_gates", ()):
+                    verdict = gate(principal, task, current)
+                    if verdict is not None:
+                        if not isinstance(verdict, dict) or verdict.get("action") not in ("allow", "defer"):
+                            raise Problem("invalid_dependency_gate", 503)
+                        if verdict["action"] == "defer":
+                            return False
                 if task.get("require_verified_dependencies"):
                     execution = current.get("execution") or {}
                     if not execution.get("id"):
@@ -433,6 +448,17 @@ class Scheduling:
 
     def dispatch(self, principal, project_id, request):
         """Select at most one eligible task for one live run and start it."""
+        return self._dispatch(principal, project_id, request)
+
+    def dispatch_exact(self, principal, project_id, request, task_id):
+        """Dispatch only this task, with the same authority, gates and claim fences.
+
+        Call inside Service.mutate, as for dispatch. Ineligible work returns no
+        assignment, never a different project task.
+        """
+        return self._dispatch(principal, project_id, request, task_id=task_id)
+
+    def _dispatch(self, principal, project_id, request, task_id=None):
         self.service.project_access(principal, project_id)
         self.service.represent(principal, request.agent_id)
         run = self.service.run(principal, request.run_id)
@@ -443,9 +469,38 @@ class Scheduling:
         if run.get("task_id"):
             return {"task": None, "claim": None}
         capabilities = self.capability_set(principal, request.agent_id)
-        candidate = self._candidate(principal, project_id, request.agent_id, capabilities, run["id"])
+        if task_id is None:
+            candidate = self._candidate(principal, project_id, request.agent_id, capabilities, run["id"])
+        else:
+            candidate = self.service.reference(principal, project_id, task_id, "task")
+            if (not self._eligible(principal, candidate, capabilities, request.agent_id)
+                    or (candidate.get("handoff") or {}).get("target_run_id") not in (None, run["id"])):
+                return {"task": None, "claim": None}
         if candidate is None:
             return {"task": None, "claim": None}
+        for gate in getattr(self.service, "task_dispatch_gates", ()):
+            verdict = gate(principal, candidate, run)
+            if verdict is not None:
+                if not isinstance(verdict, dict) or verdict.get("action") not in ("allow", "defer"):
+                    raise Problem("invalid_dispatch_gate", 503)
+                if verdict["action"] == "defer":
+                    return {"task": None, "claim": None, "deferral":
+                            {"task_id": candidate["id"], "reason": verdict.get("reason")}}
+        gate = getattr(self.service, "coordination_gate", None)
+        if gate is not None:
+            verdict = gate(principal, candidate, run)
+            if verdict and verdict.get("action") == "defer":
+                # Declared-resource conflict or unknown effects: defer deterministically.
+                # No attempt budget is consumed and no claim is touched.
+                task = self._body(candidate["id"], "task")
+                settings = self._settings(task)
+                settings["retry_after"] = verdict["retry_after"]
+                task["scheduling"] = settings
+                self._save("task", task, expected=task["revision"])
+                return {"task": None, "claim": None, "deferral":
+                        {"task_id": candidate["id"], "reason": verdict.get("reason"),
+                         "retry_after": verdict["retry_after"],
+                         "evidence": verdict.get("evidence")}}
         claim = self._acquire(principal, candidate, run)
         if claim and claim.get("denied"):
             # The deterministic conflict stays canonical; no attempt budget is consumed.
@@ -664,21 +719,21 @@ def install(app, service, principal, command, envelope):
     scheduling = Scheduling(service)
     endpoints = []
 
-    @app.post("/v0.1/task-plans")
+    @app.post("/v1/task-plans")
     async def task_plans_create(body: TaskPlanCreate, p=Depends(principal),
                                 idempotency_key: str | None = Header(None)):
         return command(p, "scheduling-plans", idempotency_key, body,
                        lambda: scheduling.create_plan(p, body))
 
-    @app.get("/v0.1/task-plans")
+    @app.get("/v1/task-plans")
     async def task_plans(project_id: str, p=Depends(principal)):
         return envelope(scheduling.plans(p, project_id))
 
-    @app.get("/v0.1/task-plans/{plan_id}")
+    @app.get("/v1/task-plans/{plan_id}")
     async def task_plan(plan_id: str, p=Depends(principal)):
         return envelope(scheduling.plan(p, plan_id))
 
-    @app.post("/v0.1/projects/{project_id}/tasks:dispatch")
+    @app.post("/v1/projects/{project_id}/tasks:dispatch")
     async def tasks_dispatch(project_id: str, body: TaskDispatch, p=Depends(principal),
                              idempotency_key: str | None = Header(None)):
         result = command(p, "scheduling-dispatch:" + project_id, idempotency_key, body,
@@ -687,40 +742,40 @@ def install(app, service, principal, command, envelope):
             return JSONResponse(result, status_code=409)
         return result
 
-    @app.post("/v0.1/tasks/{task_id}:dispatch-outcome")
+    @app.post("/v1/tasks/{task_id}:dispatch-outcome")
     async def task_dispatch_outcome(task_id: str, body: TaskDispatchOutcome, p=Depends(principal),
                                     idempotency_key: str | None = Header(None)):
         return command(p, "scheduling-outcome:" + task_id, idempotency_key, body,
                        lambda: scheduling.report(p, task_id, body))
 
-    @app.post("/v0.1/tasks/{task_id}:reconcile")
+    @app.post("/v1/tasks/{task_id}:reconcile")
     async def task_reconcile(task_id: str, body: TaskReconcile, p=Depends(principal),
                              idempotency_key: str | None = Header(None)):
         return command(p, "scheduling-reconcile:" + task_id, idempotency_key, body,
                        lambda: scheduling.reconcile(p, task_id, body))
-    @app.post("/v0.1/tasks/{task_id}:handoff")
+    @app.post("/v1/tasks/{task_id}:handoff")
     async def task_handoff(task_id: str, body: TaskHandoff, p=Depends(principal),
                            idempotency_key: str | None = Header(None)):
         return command(p, "scheduling-handoff:" + task_id, idempotency_key, body,
                        lambda: scheduling.handoff(p, task_id, body))
 
-    @app.post("/v0.1/agents/{agent_id}/capabilities")
+    @app.post("/v1/agents/{agent_id}/capabilities")
     async def agent_capabilities_set(agent_id: str, body: AgentCapabilities, p=Depends(principal),
                                      idempotency_key: str | None = Header(None)):
         return command(p, "scheduling-capabilities:" + agent_id, idempotency_key, body,
                        lambda: scheduling.set_capabilities(p, agent_id, body))
 
-    @app.get("/v0.1/agents/{agent_id}/capabilities")
+    @app.get("/v1/agents/{agent_id}/capabilities")
     async def agent_capabilities(agent_id: str, p=Depends(principal)):
         return envelope(scheduling.capabilities_view(p, agent_id))
 
-    endpoints.append("POST /v0.1/task-plans")
-    endpoints.append("GET /v0.1/task-plans")
-    endpoints.append("GET /v0.1/task-plans/{plan_id}")
-    endpoints.append("POST /v0.1/projects/{project_id}/tasks:dispatch")
-    endpoints.append("POST /v0.1/tasks/{task_id}:dispatch-outcome")
-    endpoints.append("POST /v0.1/tasks/{task_id}:reconcile")
-    endpoints.append("POST /v0.1/tasks/{task_id}:handoff")
-    endpoints.append("POST /v0.1/agents/{agent_id}/capabilities")
-    endpoints.append("GET /v0.1/agents/{agent_id}/capabilities")
+    endpoints.append("POST /v1/task-plans")
+    endpoints.append("GET /v1/task-plans")
+    endpoints.append("GET /v1/task-plans/{plan_id}")
+    endpoints.append("POST /v1/projects/{project_id}/tasks:dispatch")
+    endpoints.append("POST /v1/tasks/{task_id}:dispatch-outcome")
+    endpoints.append("POST /v1/tasks/{task_id}:reconcile")
+    endpoints.append("POST /v1/tasks/{task_id}:handoff")
+    endpoints.append("POST /v1/agents/{agent_id}/capabilities")
+    endpoints.append("GET /v1/agents/{agent_id}/capabilities")
     return {"endpoints": endpoints, "models": list(MODELS)}

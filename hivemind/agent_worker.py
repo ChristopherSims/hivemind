@@ -32,7 +32,7 @@ import time
 
 import httpx
 
-from .storage import uid
+from .storage import digest, uid
 
 TERMINAL_STATUSES = ("completed", "failed")
 RUNTIME_STATUSES = ("running", "paused", "completed", "failed")
@@ -72,13 +72,39 @@ class AgentWorker:
     ``enabled`` defaults to ``False`` so constructing a worker performs no requests.
     """
 
-    def __init__(self, client, project_id, agent_id, run_id, runtime=None, *,
-                 journal=None, enabled=False, poll_interval=5.0,
-                 claim_renew_margin=60.0, capture_health=None, assemble_context=False,
-                 context_token_budget=6000, submit_verification=False, control_boundary=None,
-                 renew_message_leases=False, process_corrections=False, context_tokenizer=None,
-                 require_exact_context_tokens=False, git_automation=None,
-                 messaging_policy=None, messaging_adapter=None):
+    def __init__(
+        self,
+        client,
+        project_id,
+        agent_id,
+        run_id,
+        runtime=None,
+        *,
+        journal=None,
+        enabled=False,
+        poll_interval=5.0,
+        claim_renew_margin=60.0,
+        capture_health=None,
+        assemble_context=False,
+        context_token_budget=6000,
+        submit_verification=False,
+        control_boundary=None,
+        renew_message_leases=False,
+        process_corrections=False,
+        context_tokenizer=None,
+        require_exact_context_tokens=False,
+        git_automation=None,
+        messaging_policy=None,
+        messaging_adapter=None,
+        messaging_delegate=None,
+        capture_lifecycle=None,
+        automatic_controls=None,
+        control_signals=None,
+        consume_handoffs=False,
+        budget_governance=None,
+    ):
+        if type(consume_handoffs) is not bool:
+            raise ValueError("consume_handoffs must be a boolean")
         if not 0.0 <= poll_interval <= 600:
             raise ValueError("poll_interval must be between 0 and 600 seconds")
         if claim_renew_margin < 0:
@@ -94,6 +120,8 @@ class AgentWorker:
         self.claim_renew_margin = float(claim_renew_margin)
         self.capture_health = capture_health or {"state": "unknown"}
         self.assemble_context = bool(assemble_context)
+        self.consume_handoffs = consume_handoffs
+        self.budget_governance = budget_governance
         self.context_token_budget = context_token_budget
         self.context_tokenizer = context_tokenizer or getattr(runtime, "context_tokenizer_id", None)
         self.require_exact_context_tokens = bool(require_exact_context_tokens)
@@ -104,14 +132,49 @@ class AgentWorker:
         self.handler_journal = None
         if journal is not None and getattr(journal, "journal", None) is not None:
             from .agent_session import HandlerJournal
+
             self.handler_journal = HandlerJournal(journal.journal, project_id, agent_id)
         self.git_automation = git_automation
+        # Opt-in: an AssignedRunMessagingSupervisor (or any compatible delegate) owns
+        # message/notification handling for this agent under a separate auxiliary run,
+        # so this loop leaves mail and notices untouched in every tick.
+        self.messaging_delegate = messaging_delegate
+        # Opt-in capture/controls seams (hivemind.worker_capture). Both are
+        # duck-typed and default off: a bound capture lifecycle supplies real
+        # capture health and observed-change/gap signals, and automatic controls
+        # are consulted at every supported boundary (tick, checkpoint, and the
+        # long-turn maintenance thread) so no model work issues while a
+        # policy-held or paused result stands.
+        self.capture_lifecycle = capture_lifecycle
+        self.automatic_controls = automatic_controls
+        self.control_signals = control_signals
+        if automatic_controls is not None:
+            # Fail wiring, not silently idle: an enabled policy that declares
+            # triggers no installed source can feed raises here.
+            from .worker_capture import validate_signal_sources
+
+            validate_signal_sources(
+                getattr(automatic_controls, "policy", None),
+                capture_lifecycle,
+                control_signals if callable(control_signals) else None,
+            )
+        # Serializes policy checks across the tick thread and long-turn boundary
+        # threads; non-blocking acquisition means no concurrent double ticks and
+        # no reentrant controller deadlock.
+        self._policy_lock = threading.Lock()
         self.messaging = None
         if messaging_policy is not None:
             from .runtime_messaging import RuntimeMessageGateway
+
             self.messaging = RuntimeMessageGateway(
-                client, project_id, agent_id, run_id, adapter=messaging_adapter or runtime,
-                policy=messaging_policy, handler_journal=self.handler_journal)
+                client,
+                project_id,
+                agent_id,
+                run_id,
+                adapter=messaging_adapter or runtime,
+                policy=messaging_policy,
+                handler_journal=self.handler_journal,
+            )
         self._boundary_lock = threading.RLock()
         self.stop_event = threading.Event()
         self.halt_reason = None
@@ -127,8 +190,15 @@ class AgentWorker:
     def _journal_append(self, entry):
         append = getattr(self.journal, "append", None) or getattr(self.journal, "record", None)
         if callable(append):
-            append({**entry, "project_id": self.project_id, "agent_id": self.agent_id,
-                    "run_id": self.run_id, "at": time.time()})
+            append(
+                {
+                    **entry,
+                    "project_id": self.project_id,
+                    "agent_id": self.agent_id,
+                    "run_id": self.run_id,
+                    "at": time.time(),
+                }
+            )
 
     def _journal_recover(self):
         recover = getattr(self.journal, "recover", None)
@@ -153,15 +223,20 @@ class AgentWorker:
         return self.stop_event.is_set()
 
     def status(self):
-        return {"enabled": self.enabled, "stopped": self.stopped, "halt_reason": self.halt_reason,
-                "task_id": self._task_id, "execution_id": self._execution_id, "progress": self.progress,
-                "resume_hint": self.resume_hint}
+        return {
+            "enabled": self.enabled,
+            "stopped": self.stopped,
+            "halt_reason": self.halt_reason,
+            "task_id": self._task_id,
+            "execution_id": self._execution_id,
+            "progress": self.progress,
+            "resume_hint": self.resume_hint,
+        }
 
     # ------------------------------------------------------------------ polling
 
     def _heartbeat(self):
-        self.client.request("POST", f"runs/{self.run_id}/heartbeat",
-                            {"capture_health": self.capture_health})
+        self.client.request("POST", f"runs/{self.run_id}/heartbeat", {"capture_health": self.capture_health})
 
     def _renew_claims(self):
         now, renewed = time.time(), []
@@ -171,23 +246,36 @@ class AgentWorker:
                 continue
             if claim.get("expires_at", 0) - now > self.claim_renew_margin:
                 continue
-            self.client.request("POST", f"work-claims/{claim['id']}:renew",
-                                {"expected_revision": claim["revision"]},
-                                key=f"renew-{claim['id']}-{claim['revision']}")
+            self.client.request(
+                "POST",
+                f"work-claims/{claim['id']}:renew",
+                {"expected_revision": claim["revision"]},
+                key=f"renew-{claim['id']}-{claim['revision']}",
+            )
             renewed.append(claim["id"])
         return renewed
 
     def _poll_messages(self):
-        handler = (self.messaging.message_handler if self.messaging is not None else
-                   getattr(self.runtime, "handle_message", None) if self.runtime else None)
+        if self.messaging_delegate is not None:
+            # The delegate handles mail concurrently under its own auxiliary run.
+            return 0
+        handler = (
+            self.messaging.message_handler
+            if self.messaging is not None
+            else getattr(self.runtime, "handle_message", None)
+            if self.runtime
+            else None
+        )
         if not callable(handler):
             # Do not claim/ack messages nothing can act on: leave them for a real processor.
             return 0
 
         def receive(receipt):
             from .recovery import UnknownOutcome
+
             def apply():
                 return handler(receipt)
+
             def invoke():
                 try:
                     if self.handler_journal and self.messaging is None:
@@ -196,9 +284,11 @@ class AgentWorker:
                 except UnknownOutcome:
                     self.stop("handler_outcome_unknown")
                     raise
+
             if not self.renew_message_leases:
                 return invoke()
             stop, errors = threading.Event(), []
+
             def maintain():
                 while not stop.wait(min(5.0, max(0.1, self.poll_interval))):
                     try:
@@ -211,6 +301,7 @@ class AgentWorker:
                         errors.append(type(error).__name__)
                         self.stop("message_maintenance_unknown")
                         return
+
             thread = threading.Thread(target=maintain, daemon=True, name="hivemind-message-maintenance")
             thread.start()
             try:
@@ -222,21 +313,33 @@ class AgentWorker:
                 raise WorkerStopped("message_processing_outcome_unknown")
 
         options = {"should_stop": self.stop_event.is_set} if self.renew_message_leases else {}
-        return len(self.client.deliver_inbox(self.agent_id, self.project_id, self.run_id, receive, **options) or [])
+        return len(
+            self.client.deliver_inbox(self.agent_id, self.project_id, self.run_id, receive, **options) or []
+        )
 
     def _poll_notifications(self):
+        if self.messaging_delegate is not None:
+            return 0
         notices = self.client.notifications(self.agent_id, self.project_id) or []
-        handler = (self.messaging.notification_handler if self.messaging is not None else
-                   getattr(self.runtime, "review_notification", None) if self.runtime else None)
+        handler = (
+            self.messaging.notification_handler
+            if self.messaging is not None
+            else getattr(self.runtime, "review_notification", None)
+            if self.runtime
+            else None
+        )
         if not callable(handler):
             # Leave review notices unacknowledged until something can actually handle them.
             return 0
         handled = 0
         for notice in notices:
             from .recovery import UnknownOutcome
+
             try:
                 if self.handler_journal and self.messaging is None:
-                    self.handler_journal.handle("notification", notice["id"], lambda item=notice: handler(item))
+                    self.handler_journal.handle(
+                        "notification", notice["id"], lambda item=notice: handler(item)
+                    )
                 else:
                     handler(notice)
             except UnknownOutcome:
@@ -250,14 +353,93 @@ class AgentWorker:
             handled += 1
         return handled
 
-    def _pending_control(self):
+    # ------------------------------------------------------ automatic policy
+
+    def _policy_signals(self):
+        """Durable current signals for a policy check: (signals, provider, token).
+
+        The token names exactly the ledger entries / conflicts the snapshot
+        consumed, so a signal arriving between the policy decision and the ack
+        is never lost to the race.
+        """
+        provider = self.control_signals if callable(self.control_signals) else None
+        if provider is not None:
+            snapshot = getattr(provider, "snapshot", None)
+            if callable(snapshot):
+                signals, token = snapshot()
+                return signals, provider, token
+            return provider(), provider, None
+        if self.capture_lifecycle is not None:
+            snap = self.capture_lifecycle.signal_snapshot()
+            return snap["signals"], None, snap
+        return None, None, None
+
+    def _policy_ack(self, provider, token):
+        """Acknowledge exactly the snapshotted signals a persisted decision consumed."""
+        if token is None:
+            return
+        if provider is not None and callable(getattr(provider, "ack", None)):
+            provider.ack(token)
+        elif self.capture_lifecycle is not None:
+            self.capture_lifecycle.ack_signals(token)
+
+    def _policy_check(self):
+        """One bounded, synchronized automatic-control cycle.
+
+        Runs at the tick boundary and at long-turn supported boundaries (the
+        checkpoint callable and the maintenance thread), so a gap/conflict/drift
+        trigger during a long vendor call creates its durable pause intent
+        mid-turn rather than after it. Non-reentrant: if a check is already
+        running on another thread this one skips and the durable hold governs,
+        so slow adapters never pile up double ticks or deadlock the controller.
+        """
+        if self.automatic_controls is None:
+            return None
+        if not self._policy_lock.acquire(blocking=False):
+            return None
+        try:
+            signals, provider, token = self._policy_signals()
+            outcome = self.automatic_controls.tick(signals)
+            if outcome is not None and outcome.get("receipt"):
+                # The decision is durable; consume exactly the snapshotted signals.
+                self._policy_ack(provider, token)
+            return outcome
+        finally:
+            self._policy_lock.release()
+
+    def _relay_conflict(self, code):
+        """Relay an actual canonical conflict reply to the signal collector.
+
+        Only known service rejection codes map to named conflicts; synthetic or
+        unknown codes record nothing.
+        """
+        if not code:
+            return
+        record = getattr(self.control_signals, "record_conflict", None)
+        if callable(record):
+            from .worker_capture import CONFLICT_CODES
+
+            name = CONFLICT_CODES.get(str(code))
+            if name:
+                record(name)
+
+    def _pending_control(self, check_policy=False):
+        if check_policy:
+            self._policy_check()
+        if self.automatic_controls is not None:
+            # Policy holds are authoritative at every supported boundary: a held
+            # (unknown-outcome) or applied pause/cancel means no further model
+            # work issues until an explicit resolution clears the durable hold.
+            hold = self.automatic_controls.hold()
+            state = hold.get("state")
+            if state and state != "clear":
+                return {"action": "cancel" if state.startswith("cancel") else "pause", "policy_hold": state}
         if self.control_boundary is not None:
             with self._boundary_lock:
                 state = self.control_boundary.boundary()
             if state.get("cancelled") or state.get("paused") or state.get("unresolved"):
                 return {"action": "cancel" if state.get("cancelled") else "pause"}
-        controls = self.client.request(
-            "GET", f"agents/{self.agent_id}/controls?project_id={self.project_id}")
+        controls = self.client.request("GET", f"agents/{self.agent_id}/controls?project_id={self.project_id}")
         for control in controls or []:
             if control.get("target_run_id") not in (None, self.run_id):
                 continue
@@ -269,8 +451,11 @@ class AgentWorker:
         """Ask the scheduler for an assignment. Absent scheduler surface means idle."""
         self.dispatches += 1
         try:
-            data = self.client.request("POST", f"projects/{self.project_id}/tasks:dispatch",
-                                       {"agent_id": self.agent_id, "run_id": self.run_id})
+            data = self.client.request(
+                "POST",
+                f"projects/{self.project_id}/tasks:dispatch",
+                {"agent_id": self.agent_id, "run_id": self.run_id},
+            )
         except httpx.HTTPStatusError as error:
             if error.response is not None and error.response.status_code in (404, 405, 501):
                 return None, None
@@ -285,13 +470,20 @@ class AgentWorker:
         scopes = set(task.get("scope_ids") or [])
         owned, candidates = set(), []
         for claim in self.client.request("GET", f"work-claims?project_id={self.project_id}") or []:
-            if (claim.get("run_id") == self.run_id and claim.get("state") == "active"
-                    and claim.get("mode") == "exclusive_owner"
-                    and claim.get("expires_at", 0) > time.time()):
+            if (
+                claim.get("run_id") == self.run_id
+                and claim.get("state") == "active"
+                and claim.get("mode") == "exclusive_owner"
+                and claim.get("expires_at", 0) > time.time()
+            ):
                 owned.update(claim.get("scope_ids") or [])
                 candidates.append(claim)
         if candidates and scopes.issubset(owned):
-            return {**candidates[0], "scope_ids": sorted(owned), "claim_ids": [item["id"] for item in candidates]}
+            return {
+                **candidates[0],
+                "scope_ids": sorted(owned),
+                "claim_ids": [item["id"] for item in candidates],
+            }
         return None
 
     def _context(self, task, claim, resumed):
@@ -302,6 +494,8 @@ class AgentWorker:
             "run_id": self.run_id,
             "task_id": task["id"],
             "execution_id": execution.get("id"),
+            "task_revision": task["revision"],
+            "checkpoint": execution.get("checkpoint"),
             "title": task.get("title"),
             "description": task.get("description", ""),
             "scope_ids": list(task.get("scope_ids") or []),
@@ -314,15 +508,34 @@ class AgentWorker:
             "should_stop": self.stop_event.is_set,
         }
         if self.assemble_context:
-            context["packet"] = self.client.assemble_context({
-                "project_id": self.project_id, "agent_selector": {"agent_ids": [self.agent_id]},
-                "requester_run_id": self.run_id, "query": str(task.get("description") or task["title"])[:4096],
-                "token_budget": self.context_token_budget,
-                "target_tokenizer": self.context_tokenizer,
-            })
-            if (self.require_exact_context_tokens
-                    and not context["packet"]["tokenization"]["exact_for_target_tokenizer"]):
+            context["packet"] = self.client.assemble_context(
+                {
+                    "project_id": self.project_id,
+                    "agent_selector": {"agent_ids": [self.agent_id]},
+                    "requester_run_id": self.run_id,
+                    "query": str(task.get("description") or task["title"])[:4096],
+                    "token_budget": self.context_token_budget,
+                    "target_tokenizer": self.context_tokenizer,
+                }
+            )
+            if (
+                self.require_exact_context_tokens
+                and not context["packet"]["tokenization"]["exact_for_target_tokenizer"]
+            ):
                 raise WorkerStopped("runtime_tokenizer_not_configured")
+        if self.consume_handoffs:
+            delivery = self.client.request(
+                "POST",
+                "structured-handoffs:consume",
+                {
+                    "run_id": self.run_id,
+                    "task_id": task["id"],
+                    "execution_id": execution["id"],
+                    "expected_task_revision": task["revision"],
+                },
+                key="handoff-" + digest([self.run_id, task["id"], execution["id"]]),
+            )
+            context["structured_handoff"] = delivery.get("context")
         return context
 
     def _make_checkpoint(self, task_id, execution_id):
@@ -331,31 +544,75 @@ class AgentWorker:
                 raise WorkerStopped(self._maintenance_error)
             self._heartbeat()
             self._renew_claims()
-            control = self._pending_control()
+            control = self._pending_control(check_policy=True)
             if control is not None:
                 raise WorkerStopped(f"control:{control.get('action')}")
             if status not in RUNTIME_STATUSES:
                 status = "running"
             if status == "running" and self.stop_event.is_set():
                 status = "paused"
-            return self._commit(task_id, execution_id, {
-                "status": status, "summary": summary, "progress": progress,
-                "evidence_refs": evidence_refs})
+            return self._commit(
+                task_id,
+                execution_id,
+                {"status": status, "summary": summary, "progress": progress, "evidence_refs": evidence_refs},
+            )
+
         return checkpoint
+
+    def _make_recovery_authority(self, task_id, execution_id, scope_ids):
+        """Build the per-execution canonical authorization callback.
+
+        Every invocation re-reads the task, run, claims, and permit from the
+        server (bound to this exact project/agent/run/task/execution) and then
+        checks fresh controls and policy holds. Any refusal raises before the
+        vendor prompt is sent; nothing is inferred from cached or vendor state.
+        """
+
+        def recovery_authority(task, context):
+            from .vendor_recovery import (
+                CONTROL_PENDING,
+                RecoveryRefused,
+                canonical_recovery_evidence,
+                require_allowed,
+            )
+
+            require_allowed(
+                canonical_recovery_evidence(
+                    self.client,
+                    project_id=self.project_id,
+                    agent_id=self.agent_id,
+                    run_id=self.run_id,
+                    task_id=task_id,
+                    execution_id=execution_id,
+                    scope_ids=scope_ids,
+                )
+            )
+            if self._pending_control(check_policy=True) is not None:
+                raise RecoveryRefused((CONTROL_PENDING,))
+            return True
+
+        return recovery_authority
 
     @staticmethod
     def _normalize(result):
         if isinstance(result, str):
             return {"status": "completed", "summary": result, "progress": 100}
         if not isinstance(result, dict):
-            return {"status": "failed", "progress": None,
-                    "summary": "Runtime adapter returned an unsupported result type"}
+            return {
+                "status": "failed",
+                "progress": None,
+                "summary": "Runtime adapter returned an unsupported result type",
+            }
         status = str(result.get("status") or "").lower()
         if status not in RUNTIME_STATUSES:
             status = "completed" if result.get("ok") else "failed"
-        return {"status": status, "summary": result.get("summary") or status,
-                "progress": result.get("progress"), "evidence_refs": result.get("evidence_refs"),
-                "test_evidence": result.get("test_evidence") or []}
+        return {
+            "status": status,
+            "summary": result.get("summary") or status,
+            "progress": result.get("progress"),
+            "evidence_refs": result.get("evidence_refs"),
+            "test_evidence": result.get("test_evidence") or [],
+        }
 
     def _commit(self, task_id, execution_id, final):
         """GET current state, then record one fenced checkpoint. Never trusts stale state."""
@@ -373,12 +630,26 @@ class AgentWorker:
         else:
             progress = max(progress, current)
         checkpoint_id = uid("checkpoint")
-        body = {"expected_revision": task["revision"], "run_id": self.run_id,
-                "execution_id": execution_id, "checkpoint_id": checkpoint_id, "status": status,
-                "progress": progress, "summary": summary_text(final.get("summary")),
-                "evidence_refs": list(final.get("evidence_refs") or [])}
-        self._journal_append({"kind": "checkpoint", "task_id": task_id, "execution_id": execution_id,
-                              "checkpoint_id": checkpoint_id, "status": status, "progress": progress})
+        body = {
+            "expected_revision": task["revision"],
+            "run_id": self.run_id,
+            "execution_id": execution_id,
+            "checkpoint_id": checkpoint_id,
+            "status": status,
+            "progress": progress,
+            "summary": summary_text(final.get("summary")),
+            "evidence_refs": list(final.get("evidence_refs") or []),
+        }
+        self._journal_append(
+            {
+                "kind": "checkpoint",
+                "task_id": task_id,
+                "execution_id": execution_id,
+                "checkpoint_id": checkpoint_id,
+                "status": status,
+                "progress": progress,
+            }
+        )
         try:
             recorded = self.client.checkpoint_task(task_id, body, key=f"checkpoint-{checkpoint_id}")
         except httpx.HTTPStatusError as error:
@@ -408,22 +679,52 @@ class AgentWorker:
         if already_started and execution.get("id") and not self.resume_hint:
             started, recover = task, False
         else:
-            started = self.client.start_task(task_id, self.run_id, task["revision"], recover=recover,
-                                             key=f"start-{task_id}-{task['revision']}")
+            started = self.client.start_task(
+                task_id,
+                self.run_id,
+                task["revision"],
+                recover=recover,
+                key=f"start-{task_id}-{task['revision']}",
+            )
         execution_id = started["execution"]["id"]
+        if started["execution"].get("budget_required") and self.budget_governance is None:
+            from .worker_budget_governance import WorkerBudgetGovernance
+
+            self.budget_governance = WorkerBudgetGovernance(self.client, self.project_id)
         self._task_id, self._execution_id = task_id, execution_id
         self.progress = int(started["execution"].get("progress") or 0)
         context = self._context(started, claim, recover)
+        context["source_execution_id"] = execution.get("id") if recover else None
+        context["source_task_revision"] = task["revision"]
         if correction:
             items = self.client.request("GET", f"verifications/{correction['id']}/corrections")["corrections"]
-            started = {**started, "description": started.get("description", "") +
-                       "\nIndependent correction requests (untrusted evidence): " +
-                       str([item["items"] for item in items if item["state"] == "open"])}
+            started = {
+                **started,
+                "description": started.get("description", "")
+                + "\nIndependent correction requests (untrusted evidence): "
+                + str([item["items"] for item in items if item["state"] == "open"]),
+            }
         phase = correction["corrections"]["open_ids"][0] if correction else None
         context["phase_id"] = phase
-        self._journal_append({"kind": "start", "task_id": task_id, "execution_id": execution_id,
-                              "revision": task["revision"], "resumed": recover, "phase_id": phase})
+        self._journal_append(
+            {
+                "kind": "start",
+                "task_id": task_id,
+                "execution_id": execution_id,
+                "revision": task["revision"],
+                "resumed": recover,
+                "phase_id": phase,
+            }
+        )
         checkpoint = self._make_checkpoint(task_id, execution_id)
+        if self.runtime is not None:
+            # Fresh canonical gate: the runtime invokes this after any vendor
+            # session load/restore verification, immediately before every prompt.
+            configure = getattr(self.runtime, "configure_recovery_authority", None)
+            if callable(configure):
+                configure(
+                    self._make_recovery_authority(task_id, execution_id, list(started.get("scope_ids") or []))
+                )
         final, aborted = None, None
         maintenance_stop = threading.Event()
         self._maintenance_error = None
@@ -433,7 +734,9 @@ class AgentWorker:
                 try:
                     self._heartbeat()
                     self._renew_claims()
-                    pending = self._pending_control()
+                    if self.budget_governance is not None:
+                        self.budget_governance.checkpoint()
+                    pending = self._pending_control(check_policy=True)
                     if pending is not None:
                         self._maintenance_error = f"control:{pending.get('action')}"
                         self.stop(self._maintenance_error)
@@ -450,20 +753,36 @@ class AgentWorker:
                 raise RuntimeError("no runtime adapter configured")
             if self.git_automation is not None:
                 self.git_automation.prepare(started, self.runtime)
-            final = self._normalize(self.runtime.execute(started, context, checkpoint))
-            if (self.git_automation is not None and final["status"] == "completed"
-                    and not self.stopped and self._maintenance_error is None):
+            if self.budget_governance is None:
+                result = self.runtime.execute(started, context, checkpoint)
+            else:
+                result = self.budget_governance.execute(
+                    self.runtime, started, context, checkpoint, self.journal
+                )
+                if self.budget_governance.held:
+                    self.stop(self.budget_governance.halt_reason or "budget_hold")
+            final = self._normalize(result)
+            if (
+                self.git_automation is not None
+                and final["status"] == "completed"
+                and not self.stopped
+                and self._maintenance_error is None
+            ):
                 self.git_automation.finish(started, execution_id, self.runtime, context, checkpoint)
         except WorkerStopped as error:
             aborted = str(error)
         except httpx.HTTPStatusError as error:
             aborted = problem_code(error) or f"http_{error.response.status_code}"
+            self._relay_conflict(problem_code(error))
         except Exception as error:  # host adapter failed: report a failure, never a silent success
             if self.journal is not None:
                 aborted = f"runtime_outcome_unknown:{type(error).__name__}"
             else:
-                final = {"status": "failed", "progress": self.progress,
-                         "summary": f"Runtime adapter raised {type(error).__name__}"}
+                final = {
+                    "status": "failed",
+                    "progress": self.progress,
+                    "summary": f"Runtime adapter raised {type(error).__name__}",
+                }
         finally:
             maintenance_stop.set()
             maintenance.join(timeout=20)
@@ -475,68 +794,129 @@ class AgentWorker:
             self.stop(self.halt_reason or aborted)
             return {"task_id": task_id, "status": "aborted", "error": aborted}
         if final is None:
-            final = {"status": "paused" if self.stopped else "failed", "progress": self.progress,
-                     "summary": self.halt_reason or "Runtime adapter returned no result"}
+            final = {
+                "status": "paused" if self.stopped else "failed",
+                "progress": self.progress,
+                "summary": self.halt_reason or "Runtime adapter returned no result",
+            }
         if self.stopped and final["status"] == "running":
             final["status"] = "paused"
         try:
             scheduled = (started.get("scheduling") or {}).get("state") == "dispatched"
             terminal = final["status"] in ("completed", "failed")
-            recorded = self._commit(task_id, execution_id,
-                                    {**final, "status": "running"} if scheduled and terminal else final)
+            recorded = self._commit(
+                task_id, execution_id, {**final, "status": "running"} if scheduled and terminal else final
+            )
             if correction and final["status"] == "completed":
                 refs = list(final.get("evidence_refs") or [])
                 for identifier in correction["corrections"]["open_ids"]:
                     current = self.client.request("GET", f"corrections/{identifier}")
-                    self.client.request("POST", f"corrections/{identifier}:resolve", {
-                        "expected_revision": current["revision"], "run_id": self.run_id,
-                        "execution_id": execution_id, "summary": summary_text(final.get("summary")),
-                        "artifact_refs": refs}, key=f"correction-{identifier}-{current['revision']}")
+                    self.client.request(
+                        "POST",
+                        f"corrections/{identifier}:resolve",
+                        {
+                            "expected_revision": current["revision"],
+                            "run_id": self.run_id,
+                            "execution_id": execution_id,
+                            "summary": summary_text(final.get("summary")),
+                            "artifact_refs": refs,
+                        },
+                        key=f"correction-{identifier}-{current['revision']}",
+                    )
                 current = self.client.verification(correction["id"])
-                self.client.update_verification(correction["id"], "update", {
-                    "expected_revision": current["revision"], "task_id": task_id, "run_id": self.run_id,
-                    "execution_id": execution_id, "completion_claimed": True,
-                    "summary": summary_text(final.get("summary")), "artifact_refs": refs,
-                    "test_evidence": final.get("test_evidence") or []},
-                    key=f"resubmit-{correction['id']}-{current['revision']}")
+                self.client.update_verification(
+                    correction["id"],
+                    "update",
+                    {
+                        "expected_revision": current["revision"],
+                        "task_id": task_id,
+                        "run_id": self.run_id,
+                        "execution_id": execution_id,
+                        "completion_claimed": True,
+                        "summary": summary_text(final.get("summary")),
+                        "artifact_refs": refs,
+                        "test_evidence": final.get("test_evidence") or [],
+                    },
+                    key=f"resubmit-{correction['id']}-{current['revision']}",
+                )
             elif self.submit_verification and final["status"] == "completed":
-                self.client.submit_verification({
-                    "task_id": task_id, "run_id": self.run_id, "execution_id": execution_id,
-                    "completion_claimed": True, "summary": summary_text(final.get("summary")),
-                    "artifact_refs": list(final.get("evidence_refs") or []),
-                    "test_evidence": final.get("test_evidence") or [],
-                }, key=f"verification-{task_id}-{execution_id}")
+                self.client.submit_verification(
+                    {
+                        "task_id": task_id,
+                        "run_id": self.run_id,
+                        "execution_id": execution_id,
+                        "completion_claimed": True,
+                        "summary": summary_text(final.get("summary")),
+                        "artifact_refs": list(final.get("evidence_refs") or []),
+                        "test_evidence": final.get("test_evidence") or [],
+                    },
+                    key=f"verification-{task_id}-{execution_id}",
+                )
             if scheduled and terminal:
-                recorded = self.client.request("POST", f"tasks/{task_id}:dispatch-outcome", {
-                    "expected_revision": recorded["revision"], "agent_id": self.agent_id,
-                    "run_id": self.run_id, "execution_id": execution_id,
-                    "outcome": "succeeded" if final["status"] == "completed" else "failed",
-                    "summary": summary_text(final.get("summary")),
-                    "evidence_refs": list(final.get("evidence_refs") or []),
-                }, key=f"outcome-{task_id}-{execution_id}-{recorded['revision']}")
+                recorded = self.client.request(
+                    "POST",
+                    f"tasks/{task_id}:dispatch-outcome",
+                    {
+                        "expected_revision": recorded["revision"],
+                        "agent_id": self.agent_id,
+                        "run_id": self.run_id,
+                        "execution_id": execution_id,
+                        "outcome": "succeeded" if final["status"] == "completed" else "failed",
+                        "summary": summary_text(final.get("summary")),
+                        "evidence_refs": list(final.get("evidence_refs") or []),
+                    },
+                    key=f"outcome-{task_id}-{execution_id}-{recorded['revision']}",
+                )
         except WorkerStopped as error:
             self.stop(self.halt_reason or str(error))
             return {"task_id": task_id, "status": "aborted", "error": self.halt_reason}
         except httpx.HTTPStatusError as error:
+            self._relay_conflict(problem_code(error))
             self.stop(problem_code(error) or f"http_{error.response.status_code}")
             return {"task_id": task_id, "status": "aborted", "error": self.halt_reason}
         self._task_id = None if recorded.get("status") in TERMINAL_STATUSES else task_id
-        self._journal_append({"kind": "result", "task_id": task_id, "execution_id": execution_id,
-                              "status": recorded.get("status"), "progress": self.progress, "phase_id": phase})
+        self._journal_append(
+            {
+                "kind": "result",
+                "task_id": task_id,
+                "execution_id": execution_id,
+                "status": recorded.get("status"),
+                "progress": self.progress,
+                "phase_id": phase,
+            }
+        )
         return {"task_id": task_id, "status": recorded.get("status"), "progress": self.progress}
 
     # ------------------------------------------------------------------ loop
 
     def tick(self):
         """Run exactly one bounded poll cycle and return a structured report."""
-        report = {"enabled": self.enabled, "at": time.time(), "heartbeat": False, "renewed": [],
-                  "messages": 0, "notifications": 0, "control": None, "task_id": None,
-                  "status": None, "skipped": None, "stopped": self.stopped}
+        report = {
+            "enabled": self.enabled,
+            "at": time.time(),
+            "heartbeat": False,
+            "renewed": [],
+            "messages": 0,
+            "notifications": 0,
+            "control": None,
+            "task_id": None,
+            "automatic_controls": None,
+            "status": None,
+            "skipped": None,
+            "stopped": self.stopped,
+        }
         if not self.enabled:
             return report
+        if self.capture_lifecycle is not None:
+            self.capture_health = self.capture_lifecycle.capture_health()
         self._heartbeat()
         report["heartbeat"] = True
         report["renewed"] = self._renew_claims()
+        if self.automatic_controls is not None:
+            # One bounded, synchronized policy cycle before any dispatch. Signals
+            # are peeked (durable snapshot) and acknowledged exactly per snapshot
+            # token only after the policy persisted a decision.
+            report["automatic_controls"] = self._policy_check()
         control = self._pending_control()
         if control is not None:
             self.halt_reason = self.halt_reason or f"control:{control.get('action')}"
@@ -552,18 +932,24 @@ class AgentWorker:
         report["notifications"] = self._poll_notifications()
         run = self.client.request("GET", f"runs/{self.run_id}")
         if self.process_corrections and not run.get("task_id"):
-            items = self.client.request("GET",
-                f"verifications?project_id={self.project_id}&status=needs_corrections")["verifications"]
+            items = self.client.request(
+                "GET", f"verifications?project_id={self.project_id}&status=needs_corrections"
+            )["verifications"]
             for item in items:
                 if item["agent_id"] != self.agent_id or item["run_id"] != self.run_id:
                     continue
-                if any((item.get("automation_attempts") or {}).get(identifier, 0) >= 3
-                       for identifier in item["corrections"]["open_ids"]):
+                if any(
+                    (item.get("automation_attempts") or {}).get(identifier, 0) >= 3
+                    for identifier in item["corrections"]["open_ids"]
+                ):
                     report["skipped"] = "correction_attempt_budget_exhausted"
                     continue
-                task = self.client.request("POST", f"verifications/{item['id']}:begin-correction", {
-                    "expected_revision": item["revision"], "run_id": self.run_id},
-                    key=f"begin-correction-{item['id']}-{item['revision']}")
+                task = self.client.request(
+                    "POST",
+                    f"verifications/{item['id']}:begin-correction",
+                    {"expected_revision": item["revision"], "run_id": self.run_id},
+                    key=f"begin-correction-{item['id']}-{item['revision']}",
+                )
                 report.update(self._execute(task, already_started=True, correction=item))
                 return report
         if run.get("task_id"):
@@ -573,8 +959,13 @@ class AgentWorker:
         if not task:
             return report
         outcome = self._execute(task, claim, already_started=not run.get("task_id"))
-        report.update({key: outcome.get(key) for key in ("task_id", "status", "skipped", "error", "progress")
-                       if key in outcome})
+        report.update(
+            {
+                key: outcome.get(key)
+                for key in ("task_id", "status", "skipped", "error", "progress")
+                if key in outcome
+            }
+        )
         report["stopped"] = self.stopped
         return report
 
@@ -598,5 +989,10 @@ class AgentWorker:
             reports = reports[-1000:]
             if iterations is None and interval > 0 and not self.stopped:
                 self.stop_event.wait(interval)
-        return {"ticks": count, "stopped": self.stopped, "halt_reason": self.halt_reason,
-                "reports": reports, "reports_truncated": count > len(reports)}
+        return {
+            "ticks": count,
+            "stopped": self.stopped,
+            "halt_reason": self.halt_reason,
+            "reports": reports,
+            "reports_truncated": count > len(reports),
+        }

@@ -1,0 +1,32 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "key": {
+      "maxLength": 64,
+      "minLength": 64,
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Key",
+      "type": "string"
+    },
+    "execution_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Execution Id",
+      "type": "string"
+    },
+    "elapsed_turn_seconds": {
+      "maximum": 86400,
+      "minimum": 0,
+      "title": "Elapsed Turn Seconds",
+      "type": "number"
+    }
+  },
+  "required": [
+    "key",
+    "execution_id",
+    "elapsed_turn_seconds"
+  ],
+  "title": "BudgetCheckpoint",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,45 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "task_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "execution_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Execution Id",
+      "type": "string"
+    },
+    "turn_key": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Turn Key",
+      "type": "string"
+    },
+    "serialized_prompt": {
+      "maxLength": 1048576,
+      "minLength": 1,
+      "title": "Serialized Prompt",
+      "type": "string"
+    }
+  },
+  "required": [
+    "task_id",
+    "run_id",
+    "execution_id",
+    "turn_key",
+    "serialized_prompt"
+  ],
+  "title": "ReserveBody",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

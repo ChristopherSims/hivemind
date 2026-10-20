@@ -99,7 +99,7 @@ def test_python_delivery_poller_retries_handler_failure_without_logging_exceptio
         return httpx.Response(response.status_code, headers=dict(response.headers), content=response.content)
     client = Client("http://testserver", token)
     client.http.close()
-    client.http = httpx.Client(base_url="http://testserver/v0.1/",
+    client.http = httpx.Client(base_url="http://testserver/v1/",
                               headers={"Authorization": f"Bearer {token}"}, transport=httpx.MockTransport(forward))
     def failing(_):
         raise ValueError("private handler diagnostic must not be captured")
@@ -177,7 +177,7 @@ def test_concurrent_claims_create_one_receipt(world):
     _, recipient, token, first, message, _ = setup(world)
     second = world.run(recipient, token)
     def take(run):
-        return world.client.post(f"/v0.1/messages/{message['id']}:claim",
+        return world.client.post(f"/v1/messages/{message['id']}:claim",
             json={"run_id": run["id"]}, headers={"Authorization": f"Bearer {token}", "Idempotency-Key": uid("key")})
     with ThreadPoolExecutor(max_workers=2) as pool:
         responses = list(pool.map(take, [first, second]))

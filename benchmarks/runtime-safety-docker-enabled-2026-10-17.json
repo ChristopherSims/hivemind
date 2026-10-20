@@ -1,0 +1,90 @@
+{
+  "date": "2026-10-17",
+  "authorization": {
+    "container_only_seccomp_apparmor_exceptions": true,
+    "separate_privileged_private_cgroup_container": true,
+    "live_vendor_calls": false
+  },
+  "sandbox_suite": {
+    "image_id": "sha256:a678e06c368a0f70b5ddc7757c7fc4b4cb7d7748aabe939fbc3e241b0cd2dc3a",
+    "uid": 1000,
+    "network": "none",
+    "privileged": false,
+    "security_options": ["seccomp=unconfined", "apparmor=unconfined"],
+    "passed": 146,
+    "skipped": 2,
+    "failed": 0,
+    "elapsed_seconds": 4.13,
+    "modules": [
+      "tests/test_os_isolation.py",
+      "tests/test_vendor_sandbox.py",
+      "tests/test_vendor_gateway.py",
+      "tests/test_runtime_safety_hardening.py",
+      "tests/test_linux_runtime_deployment.py"
+    ],
+    "skip_reasons": [
+      "Non-Linux refusal contract does not apply",
+      "Unavailable-sandbox refusal branch does not apply on working host"
+    ],
+    "real_evidence": [
+      "Filesystem and network namespace enforcement",
+      "Workspace/session write permissions and protected-path write denial",
+      "Unbound host-file denial",
+      "Allowed gateway request with direct outer-container loopback denied",
+      "Denied ungranted metadata destination",
+      "Exact-input sandboxed native JSON verification and invalid JSON rejection"
+    ]
+  },
+  "cgroup_kernel_suite": {
+    "final_image_id": "sha256:baa94649717b4698375cb4ea4ba3e581d19ea9903e681b53ec303e380cf6098b",
+    "privileged_setup": true,
+    "cgroup_namespace": "private",
+    "network": "none",
+    "setup_uid": 0,
+    "test_service_uid": 1000,
+    "extra_service_groups": [],
+    "pre_mutation_scope_checks": [
+      "Docker-only PID 1",
+      "cgroup membership 0::/",
+      "Root cgroup contains only PID 1",
+      "No existing child cgroups"
+    ],
+    "module": "tests/test_linux_cgroup_integration.py",
+    "passed": 2,
+    "skipped": 0,
+    "failed": 0,
+    "elapsed_seconds": 0.13,
+    "real_evidence": [
+      "Unprivileged service admits waiting worker before GO",
+      "setsid descendant inherits actual cgroup membership",
+      "Whole-tree cgroup.kill with live parent",
+      "Whole-tree cgroup.kill after parent exits",
+      "populated 0 drain observed",
+      "No running detached descendant remains",
+      "Owned subgroup removed; repeated close is safe"
+    ],
+    "cleanup": "Container-only delegation killed, drained and removed before successful exit"
+  },
+  "broader_docker_matrix": {
+    "image_id": "sha256:4d24a2d722b62d9b80d82e9397b274b675995cc261f05ef92480ec911fd8b73b",
+    "status": "incomplete_nonzero_exit",
+    "exit_code": 1,
+    "inner_deadline_seconds": 180,
+    "partial_output_only": true,
+    "claimed_pass": false,
+    "root_cause": "Not established; remains a separate Docker regression gate"
+  },
+  "host_directory_mounts": false,
+  "docker_socket_mount": false,
+  "production_credentials": false,
+  "host_or_wsl_security_changes": false,
+  "system_wide_installation": false,
+  "scope_limits": [
+    "Privileged mode is trusted synthetic test setup, not a safe vendor execution boundary",
+    "No proof of protection against malicious same-UID cgroup migration",
+    "Production protected deployment and service-crash cleanup remain unvalidated",
+    "Live vendor enrollment and interrupted continuation remain gated"
+  ],
+  "reproduction": "runtime-linux/README.txt",
+  "scoped_ruff": "passed"
+}

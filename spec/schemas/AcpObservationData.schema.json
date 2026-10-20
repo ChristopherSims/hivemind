@@ -1,0 +1,264 @@
+{
+  "$defs": {
+    "AcpPlanEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "content_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "in_progress",
+            "completed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "priority": {
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ],
+          "title": "Priority",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content_sha256",
+        "status",
+        "priority"
+      ],
+      "title": "AcpPlanEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "session_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Session Sha256",
+      "type": "string"
+    },
+    "connection_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Connection Id",
+      "type": "string"
+    },
+    "delivery": {
+      "enum": [
+        "live",
+        "replay"
+      ],
+      "title": "Delivery",
+      "type": "string"
+    },
+    "observation": {
+      "enum": [
+        "session_created",
+        "session_loaded",
+        "session_disconnected",
+        "turn_started",
+        "turn_completed",
+        "turn_uncertain",
+        "tool_pending",
+        "tool_in_progress",
+        "tool_completed",
+        "tool_failed",
+        "plan",
+        "file_read",
+        "file_buffer_observed"
+      ],
+      "title": "Observation",
+      "type": "string"
+    },
+    "actor": {
+      "default": "agent_reported",
+      "enum": [
+        "agent_reported",
+        "editor_observed",
+        "unattributed"
+      ],
+      "title": "Actor",
+      "type": "string"
+    },
+    "editor_observation": {
+      "anyOf": [
+        {
+          "enum": [
+            "opened",
+            "changed",
+            "saved",
+            "closed"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Editor Observation"
+    },
+    "item_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Item Sha256"
+    },
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/AcpPlanEntry"
+      },
+      "maxItems": 128,
+      "title": "Entries",
+      "type": "array"
+    },
+    "path": {
+      "anyOf": [
+        {
+          "maxLength": 4096,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Path"
+    },
+    "sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Sha256"
+    },
+    "byte_size": {
+      "anyOf": [
+        {
+          "maximum": 1048576,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Byte Size"
+    }
+  },
+  "required": [
+    "session_sha256",
+    "connection_id",
+    "delivery",
+    "observation"
+  ],
+  "title": "AcpObservationData",
+  "type": "object",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "observation": {
+            "enum": [
+              "tool_pending",
+              "tool_in_progress",
+              "tool_completed",
+              "tool_failed"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "item_sha256"
+        ],
+        "properties": {
+          "item_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observation": {
+            "enum": [
+              "file_read",
+              "file_buffer_observed"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "path",
+          "sha256",
+          "byte_size"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "byte_size": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observation": {
+            "const": "file_buffer_observed"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "editor_observation",
+          "actor"
+        ],
+        "properties": {
+          "actor": {
+            "const": "unattributed"
+          },
+          "editor_observation": {
+            "enum": [
+              "opened",
+              "changed",
+              "saved",
+              "closed"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

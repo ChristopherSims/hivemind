@@ -72,6 +72,26 @@ class JournalClient(Client):
                 operation["body"], operation_id=operation["operation_id"], safe_to_retry=True))
         return results
 
+    def recover_task_creates(self, *, enabled=False, policy=None, receipts=None,
+                             normalize=None, limit=None):
+        """Opt-in, evidence-driven recovery of interrupted canonical task creations.
+
+        Unlike :meth:`resume_commands` (an explicit caller-driven replay of
+        retry-safe commands under their preserved keys), this never re-issues
+        anything: each durable ``unknown`` ``POST tasks`` record is resolved only
+        from the authoritative server command receipt hash-bound to the exact
+        durable payload (Pydantic ``TaskCreate`` defaults applied, matching the
+        real service checksum), or stays held for an operator. The parent CLI/API
+        invokes this on startup/recovery with ``enabled=True`` (or an enabled
+        ``policy``); it is inert by default and never runs eagerly.
+        """
+        from .recovery_automation import RecoveryPolicy, recover_task_creates
+        if policy is None:
+            policy = RecoveryPolicy(enabled=enabled is True)
+        return recover_task_creates(self.journal, self.client, policy=policy,
+                                    receipts=receipts, normalize=normalize,
+                                    limit=limit)
+
 
 class WorkerJournal:
     """Persist worker transitions using the recovery journal's public checkpoint API."""

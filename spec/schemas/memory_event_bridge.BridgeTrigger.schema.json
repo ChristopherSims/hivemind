@@ -1,0 +1,31 @@
+{
+  "additionalProperties": false,
+  "description": "Typed operator trigger: names a target only; evidence is always re-fetched.",
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "binding_key": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Binding Key"
+    }
+  },
+  "required": [
+    "project_id"
+  ],
+  "title": "BridgeTrigger",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

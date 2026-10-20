@@ -455,7 +455,7 @@ def install(app, service, principal, command=None, envelope=None, *, runtime_fac
                                   journal_path=journal_path)
     app.state.git_reviewer_runtime = executor
 
-    @app.post("/v0.1/git-reviewer-runtime:review")
+    @app.post("/v1/git-reviewer-runtime:review")
     async def git_reviewer_review(body: GitReviewMerge, p=Depends(principal),
                                   idempotency_key: str | None = Header(None)):
         import asyncio

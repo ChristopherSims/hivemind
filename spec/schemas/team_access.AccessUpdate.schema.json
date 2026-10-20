@@ -1,0 +1,75 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "public_read": {
+      "default": false,
+      "title": "Public Read",
+      "type": "boolean"
+    },
+    "public_contribute": {
+      "default": false,
+      "title": "Public Contribute",
+      "type": "boolean"
+    },
+    "reader_agent_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 128,
+      "title": "Reader Agent Ids",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "contributor_agent_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 128,
+      "title": "Contributor Agent Ids",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "reader_team_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 128,
+      "title": "Reader Team Ids",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "contributor_team_ids": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 128,
+      "title": "Contributor Team Ids",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "expected_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Revision"
+    }
+  },
+  "title": "AccessUpdate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

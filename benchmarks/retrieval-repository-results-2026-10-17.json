@@ -1,0 +1,1306 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "environment": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.12.13",
+    "machine": "AMD64",
+    "processor": "AMD64 Family 23 Model 113 Stepping 0, AuthenticAMD",
+    "logical_cpus": 24,
+    "packages": {
+      "sqlite-vec": "0.1.9",
+      "ladybug": "0.21.2",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.14.1",
+      "tokenizers": "0.23.3"
+    }
+  },
+  "dataset_version": "hivemind-repository-retrieval-v1",
+  "dataset_sha256": "aaf3d48ae0c4041f51d4ccae3c401d57d5b61320fd67bf3e1d89076ca6b149e8",
+  "dataset_documents": 64,
+  "dataset_queries": 18,
+  "model": "google/embeddinggemma-2",
+  "model_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+  "embedding_device": "cpu",
+  "embedding_dtype": "torch.float32",
+  "model_load_ms": 13380.189799936488,
+  "retrieval_implementation_sha256": "141771a18515c1d08d786fa76e39848da79d0e47f0992618b0022eb0c7272196",
+  "quality": {
+    "comparisons": [
+      {
+        "mode": "lexical",
+        "dimension": 768,
+        "recall_at_10": 0.8055555555555556,
+        "mrr_at_10": 0.6643518518518519,
+        "ndcg_at_10": 0.6762542127135756,
+        "forbidden_result_rate": 0.0,
+        "latency": {
+          "samples": 18,
+          "p50_ms": 4.766000027302653,
+          "p95_ms": 5.777100101113319,
+          "max_ms": 5.777100101113319
+        },
+        "subsets": {
+          "semantic": {
+            "recall_at_10": 0.78125,
+            "mrr_at_10": 0.6223958333333334,
+            "ndcg_at_10": 0.6357859893027725,
+            "forbidden_result_rate": 0.0
+          },
+          "exact": {
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_result_rate": 0.0
+          }
+        },
+        "queries": [
+          {
+            "query_id": "memory-evidence",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-281f33dcd0f629556f62",
+              "repo-0fac1eb58f161eef7724",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-bc6ef171bcd153c5c0f3",
+              "repo-1af361fee3b6c4318c8b",
+              "repo-038259cdd43d9354e2f3",
+              "repo-343536e4f1b79f855b6f",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-9e645d86e609f7d5b657"
+            ],
+            "recall_at_10": 0.0,
+            "mrr_at_10": 0,
+            "ndcg_at_10": 0.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "atomic-storage",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-239d35c805d2d5db485f",
+              "repo-1af361fee3b6c4318c8b",
+              "repo-c6eea1c19a5b26dc73e2",
+              "repo-306222828c4d35adb6db",
+              "repo-30749bfecbc1674ac98e",
+              "repo-04438bb3ee0ff847588b",
+              "repo-1a1ddb81cb34effa0660",
+              "repo-1ef040123592e7ae37f0",
+              "repo-0fac1eb58f161eef7724",
+              "repo-066c662e56880ebbafb7"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.3333333333333333,
+            "ndcg_at_10": 0.5,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "delete-indexes",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-257fa5feb19bd18b0a66",
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-354f90accb5497d661ad",
+              "repo-0fac1eb58f161eef7724",
+              "repo-08002c404edb482875e3",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-343536e4f1b79f855b6f",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-281f33dcd0f629556f62",
+              "repo-1af361fee3b6c4318c8b"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "embedding-chunks",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-1f13c1e2d2216597ef1c",
+              "repo-038259cdd43d9354e2f3",
+              "repo-306222828c4d35adb6db",
+              "repo-08002c404edb482875e3",
+              "repo-281f33dcd0f629556f62",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-87ff008cac8b39146662",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-2ee9af902616b9a1d2e7",
+              "repo-0b4d9e78388a018392ec"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "fresh-result",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-c6eea1c19a5b26dc73e2",
+              "repo-08002c404edb482875e3",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-354f90accb5497d661ad",
+              "repo-2ee9af902616b9a1d2e7",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-0b4d9e78388a018392ec",
+              "repo-1af361fee3b6c4318c8b",
+              "repo-1c9ee41daa4ba4141f1a"
+            ],
+            "recall_at_10": 0.0,
+            "mrr_at_10": 0,
+            "ndcg_at_10": 0.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "cursor-tamper",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-1b45174fc1686f12b5b2",
+              "repo-87ff008cac8b39146662",
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-bc6ef171bcd153c5c0f3",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-1af361fee3b6c4318c8b",
+              "repo-957cc377d7e2a33bee22",
+              "repo-1c9ee41daa4ba4141f1a",
+              "repo-037cb89463097c5efa26"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 0.125,
+            "ndcg_at_10": 0.08688267143572001,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "redact-secrets",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-272729f35eaf0ab73e6d",
+              "repo-b367c0836fe9672d33a1",
+              "repo-2ee9af902616b9a1d2e7",
+              "repo-08002c404edb482875e3",
+              "repo-22b9586b32d641be52e6",
+              "repo-87ff008cac8b39146662",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-c6eea1c19a5b26dc73e2",
+              "repo-1af361fee3b6c4318c8b",
+              "repo-281f33dcd0f629556f62"
+            ],
+            "recall_at_10": 0.0,
+            "mrr_at_10": 0,
+            "ndcg_at_10": 0.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "durable-controls",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-5824659950c976c822c7",
+              "repo-2ee9af902616b9a1d2e7",
+              "repo-324ce937f455c3791729",
+              "repo-281f33dcd0f629556f62",
+              "repo-038259cdd43d9354e2f3",
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-0e798d0dcd6e87fa9552",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-30749bfecbc1674ac98e",
+              "repo-257fa5feb19bd18b0a66"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "workspace-proof",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-cf5768961d297adb0b29",
+              "repo-0b4d9e78388a018392ec",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-1a1ddb81cb34effa0660",
+              "repo-9e645d86e609f7d5b657",
+              "repo-ba92a7d28554a515d58d",
+              "repo-30749bfecbc1674ac98e",
+              "repo-306222828c4d35adb6db",
+              "repo-1979045822c9fdddce5f",
+              "repo-0e703c8c01223dcd64f4"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.9327783893101107,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "state-owner",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-1a1ddb81cb34effa0660",
+              "repo-281f33dcd0f629556f62",
+              "repo-ad243091330fc2d64cd6",
+              "repo-0e7b988e2b6a18af54b1",
+              "repo-cf5768961d297adb0b29",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-0b4d9e78388a018392ec",
+              "repo-0ef2962566a6f88624bd",
+              "repo-1ae60c089f6ab9b5f8c9",
+              "repo-d4a8863c402add57e0f2"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.3333333333333333,
+            "ndcg_at_10": 0.5,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "tool-permits",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-0b1c12b4dd017fc4d065",
+              "repo-30749bfecbc1674ac98e",
+              "repo-281f33dcd0f629556f62",
+              "repo-2ee9af902616b9a1d2e7",
+              "repo-bc6ef171bcd153c5c0f3",
+              "repo-ba92a7d28554a515d58d",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-1ae60c089f6ab9b5f8c9",
+              "repo-1d3f792542ec7c025ec5",
+              "repo-3b3f383ba022a8b9f6d5"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.16666666666666666,
+            "ndcg_at_10": 0.3562071871080222,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "watcher-stop",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-329af0ad3279ebc019b3",
+              "repo-2e0955ce1247721fad61",
+              "repo-05c93e1c769209f79680",
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-1af361fee3b6c4318c8b",
+              "repo-0b4d9e78388a018392ec",
+              "repo-0fac1eb58f161eef7724",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-08002c404edb482875e3",
+              "repo-038259cdd43d9354e2f3"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "token-fallback",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-98f15c599cb25521998d",
+              "repo-d4a8863c402add57e0f2",
+              "repo-037cb89463097c5efa26",
+              "repo-87ff008cac8b39146662",
+              "repo-239d35c805d2d5db485f",
+              "repo-1f13c1e2d2216597ef1c",
+              "repo-0fac1eb58f161eef7724",
+              "repo-1c9ee41daa4ba4141f1a",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-343536e4f1b79f855b6f"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "context-budget",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-87ff008cac8b39146662",
+              "repo-037cb89463097c5efa26",
+              "repo-08002c404edb482875e3",
+              "repo-324ce937f455c3791729",
+              "repo-0fac1eb58f161eef7724",
+              "repo-30749bfecbc1674ac98e",
+              "repo-306222828c4d35adb6db",
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-1af361fee3b6c4318c8b",
+              "repo-257fa5feb19bd18b0a66"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "git-leader",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-82f0f3faa9345a6da951",
+              "repo-1ef040123592e7ae37f0",
+              "repo-281f33dcd0f629556f62",
+              "repo-1a1ddb81cb34effa0660",
+              "repo-2ee9af902616b9a1d2e7",
+              "repo-0fac1eb58f161eef7724",
+              "repo-0e703c8c01223dcd64f4",
+              "repo-066c662e56880ebbafb7",
+              "repo-ad243091330fc2d64cd6",
+              "repo-038259cdd43d9354e2f3"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "budget-hold",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-306222828c4d35adb6db",
+              "repo-037cb89463097c5efa26",
+              "repo-1f13c1e2d2216597ef1c",
+              "repo-324ce937f455c3791729",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-d4a8863c402add57e0f2",
+              "repo-98f15c599cb25521998d",
+              "repo-2ee9af902616b9a1d2e7",
+              "repo-052094387295ea88cf7a",
+              "repo-1af361fee3b6c4318c8b"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.7967075809905066,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "symbol-vector",
+            "subset": "exact",
+            "ranked_ids": [
+              "repo-3b3f383ba022a8b9f6d5"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 1,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "symbol-claim",
+            "subset": "exact",
+            "ranked_ids": [
+              "repo-5824659950c976c822c7",
+              "repo-1c9ee41daa4ba4141f1a",
+              "repo-1a1ddb81cb34effa0660",
+              "repo-038259cdd43d9354e2f3",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-1b45174fc1686f12b5b2"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 6,
+            "forbidden_result_rate": 0.0
+          }
+        ]
+      },
+      {
+        "mode": "semantic",
+        "dimension": 768,
+        "recall_at_10": 0.9722222222222222,
+        "mrr_at_10": 0.8950617283950617,
+        "ndcg_at_10": 0.8936845657283679,
+        "forbidden_result_rate": 0.0,
+        "latency": {
+          "samples": 18,
+          "p50_ms": 125.03100000321865,
+          "p95_ms": 178.55569999665022,
+          "max_ms": 178.55569999665022
+        },
+        "subsets": {
+          "semantic": {
+            "recall_at_10": 0.96875,
+            "mrr_at_10": 0.9131944444444444,
+            "ndcg_at_10": 0.9034620268461977,
+            "forbidden_result_rate": 0.0
+          },
+          "exact": {
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.75,
+            "ndcg_at_10": 0.8154648767857287,
+            "forbidden_result_rate": 0.0
+          }
+        },
+        "queries": [
+          {
+            "query_id": "memory-evidence",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-a39e90c3a250e7ff87c7",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-9e645d86e609f7d5b657",
+              "repo-281f33dcd0f629556f62",
+              "repo-cf5768961d297adb0b29",
+              "repo-32cae4453a25f394db5c",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-20ad56552f803528993c",
+              "repo-bc6ef171bcd153c5c0f3"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "atomic-storage",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-c6eea1c19a5b26dc73e2",
+              "repo-239d35c805d2d5db485f",
+              "repo-04438bb3ee0ff847588b",
+              "repo-08002c404edb482875e3",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-5824659950c976c822c7",
+              "repo-2e1b1aef765a3c2203a1",
+              "repo-281f33dcd0f629556f62",
+              "repo-0e7b988e2b6a18af54b1",
+              "repo-343536e4f1b79f855b6f"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "delete-indexes",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-257fa5feb19bd18b0a66",
+              "repo-343536e4f1b79f855b6f",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-a39e90c3a250e7ff87c7",
+              "repo-9e645d86e609f7d5b657",
+              "repo-281f33dcd0f629556f62",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-038259cdd43d9354e2f3",
+              "repo-32cae4453a25f394db5c",
+              "repo-1c9ee41daa4ba4141f1a"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "embedding-chunks",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-1f13c1e2d2216597ef1c",
+              "repo-0ef2962566a6f88624bd",
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-08002c404edb482875e3",
+              "repo-272729f35eaf0ab73e6d",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-82f0f3faa9345a6da951",
+              "repo-d4a8863c402add57e0f2",
+              "repo-957cc377d7e2a33bee22"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "fresh-result",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-bc6ef171bcd153c5c0f3",
+              "repo-038259cdd43d9354e2f3",
+              "repo-1ae60c089f6ab9b5f8c9",
+              "repo-354f90accb5497d661ad",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-281f33dcd0f629556f62",
+              "repo-a39e90c3a250e7ff87c7"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.944847956559586,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "cursor-tamper",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-272729f35eaf0ab73e6d",
+              "repo-324ce937f455c3791729",
+              "repo-038259cdd43d9354e2f3",
+              "repo-bc6ef171bcd153c5c0f3",
+              "repo-5824659950c976c822c7",
+              "repo-957cc377d7e2a33bee22",
+              "repo-1af361fee3b6c4318c8b"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 0.1111111111111111,
+            "ndcg_at_10": 0.0829071384176138,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "redact-secrets",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-1a7ebdf78a925eeb132d",
+              "repo-1d276fa149f3524a27e6",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-a39e90c3a250e7ff87c7",
+              "repo-32cae4453a25f394db5c",
+              "repo-1af361fee3b6c4318c8b",
+              "repo-b367c0836fe9672d33a1",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-038259cdd43d9354e2f3"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "durable-controls",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-5824659950c976c822c7",
+              "repo-2ee9af902616b9a1d2e7",
+              "repo-0e798d0dcd6e87fa9552",
+              "repo-324ce937f455c3791729",
+              "repo-306222828c4d35adb6db",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-11d91301d664f0cf14c6",
+              "repo-22b9586b32d641be52e6",
+              "repo-a39e90c3a250e7ff87c7"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "workspace-proof",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-cf5768961d297adb0b29",
+              "repo-9e645d86e609f7d5b657",
+              "repo-0b4d9e78388a018392ec",
+              "repo-0e703c8c01223dcd64f4",
+              "repo-ad243091330fc2d64cd6",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-a39e90c3a250e7ff87c7",
+              "repo-2ee9af902616b9a1d2e7",
+              "repo-5824659950c976c822c7",
+              "repo-ba92a7d28554a515d58d"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "state-owner",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-ad243091330fc2d64cd6",
+              "repo-0e7b988e2b6a18af54b1",
+              "repo-1d3f792542ec7c025ec5",
+              "repo-0a35712f08a3ae83daf2",
+              "repo-1a1ddb81cb34effa0660",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-0b4d9e78388a018392ec",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-281f33dcd0f629556f62",
+              "repo-9c5e43121b7e27db9dbe"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "tool-permits",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-ba92a7d28554a515d58d",
+              "repo-1d3f792542ec7c025ec5",
+              "repo-1ae60c089f6ab9b5f8c9",
+              "repo-30749bfecbc1674ac98e",
+              "repo-0b1c12b4dd017fc4d065",
+              "repo-1a1ddb81cb34effa0660",
+              "repo-306222828c4d35adb6db",
+              "repo-2e1b1aef765a3c2203a1",
+              "repo-0e7b988e2b6a18af54b1",
+              "repo-239d35c805d2d5db485f"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "watcher-stop",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-329af0ad3279ebc019b3",
+              "repo-05c93e1c769209f79680",
+              "repo-2e0955ce1247721fad61",
+              "repo-1af361fee3b6c4318c8b",
+              "repo-281f33dcd0f629556f62",
+              "repo-324ce937f455c3791729",
+              "repo-5824659950c976c822c7",
+              "repo-306222828c4d35adb6db",
+              "repo-98f15c599cb25521998d",
+              "repo-11d91301d664f0cf14c6"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "token-fallback",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-d4a8863c402add57e0f2",
+              "repo-98f15c599cb25521998d",
+              "repo-0ef2962566a6f88624bd",
+              "repo-037cb89463097c5efa26",
+              "repo-bc6ef171bcd153c5c0f3",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-1f13c1e2d2216597ef1c",
+              "repo-306222828c4d35adb6db",
+              "repo-1ae60c089f6ab9b5f8c9"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.7967075809905066,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "context-budget",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-037cb89463097c5efa26",
+              "repo-87ff008cac8b39146662",
+              "repo-306222828c4d35adb6db",
+              "repo-0fac1eb58f161eef7724",
+              "repo-5824659950c976c822c7",
+              "repo-052094387295ea88cf7a",
+              "repo-1f13c1e2d2216597ef1c",
+              "repo-324ce937f455c3791729",
+              "repo-281f33dcd0f629556f62",
+              "repo-239d35c805d2d5db485f"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.6309297535714574,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "git-leader",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-82f0f3faa9345a6da951",
+              "repo-1d3f792542ec7c025ec5",
+              "repo-2e1b1aef765a3c2203a1",
+              "repo-ad243091330fc2d64cd6",
+              "repo-1a1ddb81cb34effa0660",
+              "repo-0e703c8c01223dcd64f4",
+              "repo-281f33dcd0f629556f62",
+              "repo-1ef040123592e7ae37f0",
+              "repo-0a35712f08a3ae83daf2",
+              "repo-2916d370c8222fe623c3"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "budget-hold",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-037cb89463097c5efa26",
+              "repo-306222828c4d35adb6db",
+              "repo-324ce937f455c3791729",
+              "repo-98f15c599cb25521998d",
+              "repo-d4a8863c402add57e0f2",
+              "repo-0fac1eb58f161eef7724",
+              "repo-1f13c1e2d2216597ef1c",
+              "repo-0ef2962566a6f88624bd",
+              "repo-2600fca3dbc43f90e94f",
+              "repo-bc6ef171bcd153c5c0f3"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "symbol-vector",
+            "subset": "exact",
+            "ranked_ids": [
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-0ef2962566a6f88624bd",
+              "repo-1f13c1e2d2216597ef1c",
+              "repo-272729f35eaf0ab73e6d",
+              "repo-82f0f3faa9345a6da951",
+              "repo-0a35712f08a3ae83daf2",
+              "repo-1a1ddb81cb34effa0660",
+              "repo-b367c0836fe9672d33a1",
+              "repo-957cc377d7e2a33bee22",
+              "repo-d4a8863c402add57e0f2"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "symbol-claim",
+            "subset": "exact",
+            "ranked_ids": [
+              "repo-306222828c4d35adb6db",
+              "repo-5824659950c976c822c7",
+              "repo-227bd2e12da42850506c",
+              "repo-2e1b1aef765a3c2203a1",
+              "repo-324ce937f455c3791729",
+              "repo-1d3f792542ec7c025ec5",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-0e703c8c01223dcd64f4",
+              "repo-82f0f3faa9345a6da951",
+              "repo-037cb89463097c5efa26"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.6309297535714574,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          }
+        ]
+      },
+      {
+        "mode": "hybrid",
+        "dimension": 768,
+        "recall_at_10": 0.9166666666666666,
+        "mrr_at_10": 0.7121693121693121,
+        "ndcg_at_10": 0.7529708588637349,
+        "forbidden_result_rate": 0.0,
+        "latency": {
+          "samples": 18,
+          "p50_ms": 124.80959994718432,
+          "p95_ms": 156.1477999202907,
+          "max_ms": 156.1477999202907
+        },
+        "subsets": {
+          "semantic": {
+            "recall_at_10": 0.90625,
+            "mrr_at_10": 0.6761904761904762,
+            "ndcg_at_10": 0.7220922162217018,
+            "forbidden_result_rate": 0.0
+          },
+          "exact": {
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_result_rate": 0.0
+          }
+        },
+        "queries": [
+          {
+            "query_id": "memory-evidence",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-281f33dcd0f629556f62",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-9e645d86e609f7d5b657",
+              "repo-bc6ef171bcd153c5c0f3",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-a39e90c3a250e7ff87c7",
+              "repo-038259cdd43d9354e2f3",
+              "repo-cf5768961d297adb0b29",
+              "repo-343536e4f1b79f855b6f"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.14285714285714285,
+            "ndcg_at_10": 0.3333333333333333,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "atomic-storage",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-239d35c805d2d5db485f",
+              "repo-c6eea1c19a5b26dc73e2",
+              "repo-04438bb3ee0ff847588b",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-1af361fee3b6c4318c8b",
+              "repo-2e1b1aef765a3c2203a1",
+              "repo-306222828c4d35adb6db",
+              "repo-0fac1eb58f161eef7724",
+              "repo-281f33dcd0f629556f62",
+              "repo-1ef040123592e7ae37f0"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.6309297535714574,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "delete-indexes",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-257fa5feb19bd18b0a66",
+              "repo-343536e4f1b79f855b6f",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-281f33dcd0f629556f62",
+              "repo-9e645d86e609f7d5b657",
+              "repo-08002c404edb482875e3",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-0fac1eb58f161eef7724",
+              "repo-1c9ee41daa4ba4141f1a"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "embedding-chunks",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-1f13c1e2d2216597ef1c",
+              "repo-08002c404edb482875e3",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-038259cdd43d9354e2f3",
+              "repo-87ff008cac8b39146662",
+              "repo-281f33dcd0f629556f62",
+              "repo-5824659950c976c822c7",
+              "repo-306222828c4d35adb6db",
+              "repo-1b45174fc1686f12b5b2"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "fresh-result",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-354f90accb5497d661ad",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-038259cdd43d9354e2f3",
+              "repo-08002c404edb482875e3",
+              "repo-c6eea1c19a5b26dc73e2",
+              "repo-bc6ef171bcd153c5c0f3",
+              "repo-2ee9af902616b9a1d2e7"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.2,
+            "ndcg_at_10": 0.4025383349622662,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "cursor-tamper",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-bc6ef171bcd153c5c0f3",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-1af361fee3b6c4318c8b",
+              "repo-957cc377d7e2a33bee22",
+              "repo-324ce937f455c3791729",
+              "repo-038259cdd43d9354e2f3",
+              "repo-281f33dcd0f629556f62"
+            ],
+            "recall_at_10": 0.5,
+            "mrr_at_10": 0.14285714285714285,
+            "ndcg_at_10": 0.09180385079206221,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "redact-secrets",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-b367c0836fe9672d33a1",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-272729f35eaf0ab73e6d",
+              "repo-1af361fee3b6c4318c8b",
+              "repo-08002c404edb482875e3",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-22b9586b32d641be52e6",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-038259cdd43d9354e2f3",
+              "repo-bc6ef171bcd153c5c0f3"
+            ],
+            "recall_at_10": 0.0,
+            "mrr_at_10": 0,
+            "ndcg_at_10": 0.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "durable-controls",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-5824659950c976c822c7",
+              "repo-2ee9af902616b9a1d2e7",
+              "repo-324ce937f455c3791729",
+              "repo-0e798d0dcd6e87fa9552",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-306222828c4d35adb6db",
+              "repo-22b9586b32d641be52e6",
+              "repo-281f33dcd0f629556f62",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-bc6ef171bcd153c5c0f3"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "workspace-proof",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-cf5768961d297adb0b29",
+              "repo-0b4d9e78388a018392ec",
+              "repo-9e645d86e609f7d5b657",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-0e703c8c01223dcd64f4",
+              "repo-ba92a7d28554a515d58d",
+              "repo-30749bfecbc1674ac98e",
+              "repo-a39e90c3a250e7ff87c7",
+              "repo-1a1ddb81cb34effa0660",
+              "repo-306222828c4d35adb6db"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 0.9639404333166532,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "state-owner",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-ad243091330fc2d64cd6",
+              "repo-1a1ddb81cb34effa0660",
+              "repo-0e7b988e2b6a18af54b1",
+              "repo-281f33dcd0f629556f62",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-0b4d9e78388a018392ec",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-1ae60c089f6ab9b5f8c9",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-ba92a7d28554a515d58d"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "tool-permits",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-0b1c12b4dd017fc4d065",
+              "repo-30749bfecbc1674ac98e",
+              "repo-ba92a7d28554a515d58d",
+              "repo-1d3f792542ec7c025ec5",
+              "repo-1ae60c089f6ab9b5f8c9",
+              "repo-bc6ef171bcd153c5c0f3",
+              "repo-306222828c4d35adb6db",
+              "repo-281f33dcd0f629556f62",
+              "repo-2ee9af902616b9a1d2e7",
+              "repo-0a35712f08a3ae83daf2"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.3333333333333333,
+            "ndcg_at_10": 0.5,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "watcher-stop",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-329af0ad3279ebc019b3",
+              "repo-05c93e1c769209f79680",
+              "repo-2e0955ce1247721fad61",
+              "repo-1af361fee3b6c4318c8b",
+              "repo-0fac1eb58f161eef7724",
+              "repo-257fa5feb19bd18b0a66",
+              "repo-306222828c4d35adb6db",
+              "repo-281f33dcd0f629556f62",
+              "repo-324ce937f455c3791729",
+              "repo-0b4d9e78388a018392ec"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "token-fallback",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-98f15c599cb25521998d",
+              "repo-d4a8863c402add57e0f2",
+              "repo-037cb89463097c5efa26",
+              "repo-0ef2962566a6f88624bd",
+              "repo-1f13c1e2d2216597ef1c",
+              "repo-0fac1eb58f161eef7724",
+              "repo-1c9ee41daa4ba4141f1a",
+              "repo-038259cdd43d9354e2f3",
+              "repo-306222828c4d35adb6db",
+              "repo-bc6ef171bcd153c5c0f3"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "context-budget",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-037cb89463097c5efa26",
+              "repo-87ff008cac8b39146662",
+              "repo-0fac1eb58f161eef7724",
+              "repo-306222828c4d35adb6db",
+              "repo-324ce937f455c3791729",
+              "repo-5824659950c976c822c7",
+              "repo-052094387295ea88cf7a",
+              "repo-08002c404edb482875e3",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-98f15c599cb25521998d"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 0.5,
+            "ndcg_at_10": 0.6309297535714574,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "git-leader",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-82f0f3faa9345a6da951",
+              "repo-1a1ddb81cb34effa0660",
+              "repo-1ef040123592e7ae37f0",
+              "repo-281f33dcd0f629556f62",
+              "repo-ad243091330fc2d64cd6",
+              "repo-0e703c8c01223dcd64f4",
+              "repo-1d3f792542ec7c025ec5",
+              "repo-2e1b1aef765a3c2203a1",
+              "repo-0a35712f08a3ae83daf2",
+              "repo-bc6ef171bcd153c5c0f3"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "budget-hold",
+            "subset": "semantic",
+            "ranked_ids": [
+              "repo-037cb89463097c5efa26",
+              "repo-306222828c4d35adb6db",
+              "repo-324ce937f455c3791729",
+              "repo-1f13c1e2d2216597ef1c",
+              "repo-98f15c599cb25521998d",
+              "repo-d4a8863c402add57e0f2",
+              "repo-2e6ef0e9b514e122815c",
+              "repo-052094387295ea88cf7a",
+              "repo-0fac1eb58f161eef7724",
+              "repo-281f33dcd0f629556f62"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "symbol-vector",
+            "subset": "exact",
+            "ranked_ids": [
+              "repo-3b3f383ba022a8b9f6d5",
+              "repo-0ef2962566a6f88624bd",
+              "repo-1f13c1e2d2216597ef1c",
+              "repo-272729f35eaf0ab73e6d",
+              "repo-82f0f3faa9345a6da951",
+              "repo-0a35712f08a3ae83daf2",
+              "repo-1a1ddb81cb34effa0660",
+              "repo-b367c0836fe9672d33a1",
+              "repo-957cc377d7e2a33bee22",
+              "repo-d4a8863c402add57e0f2"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          },
+          {
+            "query_id": "symbol-claim",
+            "subset": "exact",
+            "ranked_ids": [
+              "repo-5824659950c976c822c7",
+              "repo-9c5e43121b7e27db9dbe",
+              "repo-1c9ee41daa4ba4141f1a",
+              "repo-1b45174fc1686f12b5b2",
+              "repo-1a1ddb81cb34effa0660",
+              "repo-038259cdd43d9354e2f3",
+              "repo-306222828c4d35adb6db",
+              "repo-227bd2e12da42850506c",
+              "repo-2e1b1aef765a3c2203a1",
+              "repo-324ce937f455c3791729"
+            ],
+            "recall_at_10": 1.0,
+            "mrr_at_10": 1.0,
+            "ndcg_at_10": 1.0,
+            "forbidden_results": 0,
+            "returned_results": 10,
+            "forbidden_result_rate": 0.0
+          }
+        ]
+      }
+    ],
+    "document_encoding": {
+      "samples": 64,
+      "p50_ms": 286.1155500286259,
+      "p95_ms": 1063.7620999477804,
+      "max_ms": 2781.223800033331
+    },
+    "method": "Production Indexes.search, FTS5/sqlite-vec/RRF and authorization. Reduced dimensions are prefix-truncated, renormalized and zero-padded; storage/latency do not simulate a smaller vec0 column. Document encodings reused across dimensions; search includes query encoding. One warm-up per query/mode/dimension; no HTTP overhead."
+  },
+  "scale": null,
+  "search_scale": null
+}

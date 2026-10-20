@@ -1,0 +1,29 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Project Id"
+    },
+    "limit": {
+      "default": 16,
+      "maximum": 100,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    }
+  },
+  "title": "LifecycleTick",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

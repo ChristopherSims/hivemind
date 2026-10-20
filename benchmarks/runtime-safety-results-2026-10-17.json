@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-17",
+  "scope": "offline_and_synthetic_only",
+  "selected_windows_boundary": "wsl2_linux_sandbox_with_explicit_gateway",
+  "pytest": {
+    "passed": 386,
+    "skipped": 7,
+    "elapsed_seconds": 82.79,
+    "skip_reasons": [
+      "Real Linux bubblewrap sandbox and kernel-isolation requirements",
+      "POSIX ownership and mode requirements",
+      "Unavailable symlink privilege"
+    ],
+    "modules": [
+      "test_runtime_safety_hardening",
+      "test_worker_provisioning",
+      "test_vendor_recovery",
+      "test_vendor_recovery_integration",
+      "test_vendor_runtimes",
+      "test_worker_mcp_registration",
+      "test_additional_integrations",
+      "test_task_execution",
+      "test_runtime_lifecycle",
+      "test_control_capture",
+      "test_worker_permissions",
+      "test_os_isolation",
+      "test_vendor_sandbox",
+      "test_vendor_gateway",
+      "test_isolation_runtime_wiring",
+      "test_protocol_runtimes",
+      "test_model_wiring",
+      "test_sdk",
+      "test_core"
+    ]
+  },
+  "scoped_ruff": "passed",
+  "scoped_whitespace": "passed",
+  "worker_json_schema_and_openapi": "passed_in_memory_without_snapshot_overwrite",
+  "real_wsl_readiness": "blocked",
+  "real_wsl_preflight_file": "runtime-safety-wsl-2026-10-17.json",
+  "live_vendor_calls": false,
+  "live_mcp_enrollment": false,
+  "live_interrupted_continuation": false,
+  "linux_sandbox_launch_exercised": false,
+  "kernel_cgroup_containment_exercised": false,
+  "host_provisioning_changes": false
+}

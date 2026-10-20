@@ -1,0 +1,123 @@
+{
+  "$defs": {
+    "UsageReport": {
+      "additionalProperties": false,
+      "description": "Actual usage for settlement. Trusted completeness decides accounting:\n\n- trusted + complete tokens: accounted at actual; cost from provider report or the\n  frozen operator price schedule; missing cost is an explicit unknown hold.\n- untrusted (``reported``) or incomplete: reserved worst case stays accounted and\n  the reservation is an unknown hold until explicit authorized resolution.",
+      "properties": {
+        "source": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "input_tokens": {
+          "anyOf": [
+            {
+              "maximum": 1000000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Input Tokens"
+        },
+        "output_tokens": {
+          "anyOf": [
+            {
+              "maximum": 1000000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Tokens"
+        },
+        "cost": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cost"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "maxLength": 32,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Currency"
+        },
+        "vendor_overhead_note": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vendor Overhead Note"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "title": "UsageReport",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "key": {
+      "maxLength": 64,
+      "minLength": 64,
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Key",
+      "type": "string"
+    },
+    "execution_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Execution Id",
+      "type": "string"
+    },
+    "elapsed_seconds": {
+      "maximum": 86400,
+      "minimum": 0,
+      "title": "Elapsed Seconds",
+      "type": "number"
+    },
+    "usage": {
+      "$ref": "#/$defs/UsageReport"
+    }
+  },
+  "required": [
+    "key",
+    "execution_id",
+    "elapsed_seconds",
+    "usage"
+  ],
+  "title": "SettleBody",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

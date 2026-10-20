@@ -1,0 +1,24 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Project Id",
+      "type": "string"
+    },
+    "limit": {
+      "default": 32,
+      "maximum": 64,
+      "minimum": 2,
+      "title": "Limit",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "project_id"
+  ],
+  "title": "ContradictionScan",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

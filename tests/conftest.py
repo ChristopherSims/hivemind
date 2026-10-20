@@ -16,7 +16,7 @@ class World:
         self.owner = config["token"]
 
     def call(self, method, path, body=None, token=None, key=None, status=200):
-        response = self.client.request(method, "/v0.1/" + path, json=body, headers={
+        response = self.client.request(method, "/v1/" + path, json=body, headers={
             "Authorization": "Bearer " + (token or self.owner), "Idempotency-Key": key or uid("key")})
         assert response.status_code == status, response.text
         return response.json().get("data", response.json())

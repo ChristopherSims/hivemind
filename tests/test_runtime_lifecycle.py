@@ -23,7 +23,7 @@ class LocalClient:
         self.world, self.token = world, token
 
     def request(self, method, path, body=None, key=None):
-        response = self.world.client.request(method, "/v0.1/" + path, json=body, headers={
+        response = self.world.client.request(method, "/v1/" + path, json=body, headers={
             "Authorization": "Bearer " + self.token, "Idempotency-Key": key or uid("key")})
         assert response.status_code < 400, response.text
         return response.json()["data"]
@@ -580,7 +580,7 @@ def test_install_reconcile_route_is_opt_in_and_administrator_gated(world, tmp_pa
     rl.install(app, app.state.service, principal)
     with TestClient(app) as client:
         def call(method, path, body=None, token=None, status=200):
-            response = client.request(method, "/v0.1/" + path, json=body, headers={
+            response = client.request(method, "/v1/" + path, json=body, headers={
                 "Authorization": "Bearer " + (token or config["token"]), "Idempotency-Key": uid("key")})
             assert response.status_code == status, response.text
             return response.json().get("data", response.json())

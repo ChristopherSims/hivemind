@@ -71,6 +71,29 @@ def check_read_scope(config, name, tool_input):
 
 
 def invoke(config, payload):
+    monitored = config.get("permission_monitor") is not None
+    pre = payload.get("hook_event_name", payload.get("type")) in ("PreToolUse", "tool_call")
+    try:
+        if monitored and pre:
+            from .worker_permissions import read_violation
+            monitor = config["permission_monitor"]
+            if read_violation(Path(monitor["incident_file"]),
+                    {key: monitor[key] for key in ("worker_id", "launch_id", "nonce")}):
+                raise PermissionError("Worker already has a safety incident")
+        if pre and config.get("agent_permissions") is not None:
+            from .worker_permissions import WorkerPermissions
+            WorkerPermissions(**config["agent_permissions"]).check(config,
+                payload.get("tool_name", payload.get("toolName", "")),
+                payload.get("tool_input", payload.get("input", {})))
+        return _invoke(config, payload)
+    except (RuntimeError, PermissionError, ValueError):
+        if monitored and pre:
+            from .worker_permissions import signal_violation
+            signal_violation(config)
+        raise
+
+
+def _invoke(config, payload):
     client = Client(config["base_url"], config["token"])
     runtime = config.get("runtime", "droid")
     session_id = payload.get("session_id", "default")
@@ -122,6 +145,29 @@ def invoke(config, payload):
     event = payload.get("hook_event_name", payload.get("type"))
     name = payload.get("tool_name", payload.get("toolName", ""))
     tool_input = payload.get("tool_input", payload.get("input", {}))
+    # Opt-in governed tool gateway: applies the trusted operator GatewayPolicy
+    # before any tool executes. Strictness comes only from the config file,
+    # never from the payload. Existing checks below are preserved unchanged.
+    gateway_config = config.get("gateway")
+    if gateway_config is not None:
+        if not isinstance(gateway_config, dict) or type(gateway_config.get("enabled")) is not bool:
+            raise RuntimeError("Gateway configuration requires an explicit boolean enabled flag")
+        if gateway_config["enabled"] and event in ("PreToolUse", "tool_call"):
+            from .control_capture import GatewayPolicy, ToolGateway
+            allowed_tools = gateway_config.get("allowed_tools")
+            policy = GatewayPolicy(
+                strict=gateway_config.get("strict", True) is True,
+                allowed_tools=frozenset(allowed_tools) if allowed_tools is not None else None,
+                allowed_namespaces=frozenset(gateway_config.get(
+                    "allowed_namespaces", ["filesystem", "network", "discovery"])),
+                allowed_mcp_tools=tuple(config.get("allowed_mcp_tools", [])),
+                restrict_reads_to_workspace=config.get("restrict_reads_to_workspace",
+                                                       True) is True)
+            decision = ToolGateway(policy, workspace_root=config["workspace_root"]).evaluate(
+                name, tool_input, calls_made=state.get("tool_call_count", 0))
+            if not decision.allowed:
+                client.close()
+                raise RuntimeError("Gateway policy denied this tool request")
     call_key = digest({"name": name, "input": tool_input})
     explicit_call = payload.get("toolCallId") or payload.get("tool_use_id")
     if event in ("PreToolUse", "tool_call"):

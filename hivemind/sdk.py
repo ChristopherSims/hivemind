@@ -36,19 +36,181 @@ def redact_value(value):
 
 
 class Client:
-    def __init__(self, base_url, token, *, transport=None):
-        self.http = httpx.Client(base_url=base_url.rstrip("/") + "/v0.1/",
+    def create_nexus_grant(self, request, key=None):
+        return self.request("POST", "nexus-grants", request, key=key)
+
+    def nexus_grants(self, project_id):
+        from urllib.parse import quote
+        return self.request("GET", f"projects/{quote(project_id, safe='')}/nexus-grants")
+
+    def revoke_nexus_grant(self, grant_id, expected_revision, key=None):
+        from urllib.parse import quote
+        return self.request("POST", f"nexus-grants/{quote(grant_id, safe='')}:revoke",
+                            {"expected_revision": expected_revision}, key=key)
+
+    def mirror_memory(self, memory_id, request, key=None):
+        from urllib.parse import quote
+        return self.request("POST", f"memories/{quote(memory_id, safe='')}:mirror", request, key=key)
+
+    def create_worker(self, project_id, request, key=None):
+        """Provision through server-side profile and repository-policy checks."""
+        from urllib.parse import quote
+        return self.request("POST", f"projects/{quote(project_id, safe='')}/workers", request, key=key)
+
+    def create_team(self, request, key=None):
+        return self.request("POST", "teams", request, key=key)
+
+    def retrieve_provider_memories(self, project_id, request, key=None):
+        from urllib.parse import quote
+        return self.request("POST", f"projects/{quote(project_id, safe='')}/memory-providers:retrieve",
+                            request, key=key)
+
+    def provider_memory_result(self, result_id):
+        from urllib.parse import quote
+        return self.request("GET", f"memory-provider-results/{quote(result_id, safe='')}")
+
+    def import_provider_memory(self, project_id, request, key=None):
+        from urllib.parse import quote
+        return self.request("POST", f"projects/{quote(project_id, safe='')}/memory-providers:import",
+                            request, key=key)
+
+    def reconcile_provider_memories(self, project_id, adapter):
+        from urllib.parse import quote
+        return self.request("POST", f"projects/{quote(project_id, safe='')}/memory-providers:reconcile",
+                            {"adapter": adapter})
+
+    def provider_memory_status(self, project_id):
+        from urllib.parse import quote
+        return self.request("GET", f"projects/{quote(project_id, safe='')}/memory-providers:status")
+
+    def teams(self, project_id):
+        from urllib.parse import quote
+        return self.request("GET", f"projects/{quote(project_id, safe='')}/teams")
+
+    def update_team(self, team_id, request, key=None):
+        from urllib.parse import quote
+        return self.request("PATCH", f"teams/{quote(team_id, safe='')}", request, key=key)
+
+    def create_board(self, request, key=None):
+        return self.request("POST", "boards", request, key=key)
+
+    def resource_access(self, resource_id):
+        from urllib.parse import quote
+        return self.request("GET", f"resources/{quote(resource_id, safe='')}/access")
+
+    def set_resource_access(self, resource_id, request, key=None):
+        from urllib.parse import quote
+        return self.request("PUT", f"resources/{quote(resource_id, safe='')}/access", request, key=key)
+
+    def worker_defaults(self, project_id):
+        from urllib.parse import quote
+        return self.request("GET", f"projects/{quote(project_id, safe='')}/workers:defaults")
+
+    def worker_status(self, worker_id):
+        from urllib.parse import quote
+        return self.request("GET", f"workers/{quote(worker_id, safe='')}")
+
+    def start_worker(self, worker_id, request):
+        from urllib.parse import quote
+        return self.request("POST", f"workers/{quote(worker_id, safe='')}:start", request)
+
+    def stop_worker(self, worker_id, request):
+        from urllib.parse import quote
+        return self.request("POST", f"workers/{quote(worker_id, safe='')}:stop", request)
+
+    def blocked_task_status(self, project_id, task_id, *, run_id=None, agent_id=None):
+        """Current readiness evidence, never execution permission."""
+        from urllib.parse import quote, urlencode
+        query = {name: value for name, value in
+                 (("run_id", run_id), ("agent_id", agent_id)) if value is not None}
+        path = (f"projects/{quote(project_id, safe='')}/tasks/"
+                f"{quote(task_id, safe='')}/blocked-status")
+        return self.request("GET", path + ("?" + urlencode(query) if query else ""))
+
+    def request_task_resolution(self, project_id, request, key=None):
+        from urllib.parse import quote
+        return self.request("POST", f"projects/{quote(project_id, safe='')}/blocked-tasks:request",
+                            request, key=key)
+
+    def task_resolution_requests(self, project_id, *, task_id=None):
+        from urllib.parse import quote, urlencode
+        path = f"projects/{quote(project_id, safe='')}/blocked-task-requests"
+        return self.request("GET", path + ("?" + urlencode({"task_id": task_id}) if task_id else ""))
+
+    def task_resolution_request(self, request_id):
+        from urllib.parse import quote
+        return self.request("GET", f"blocked-task-requests/{quote(request_id, safe='')}")
+
+    def acknowledge_task_resolution(self, request_id, request, key=None):
+        from urllib.parse import quote
+        return self.request("POST", f"blocked-task-requests/{quote(request_id, safe='')}:acknowledge",
+                            request, key=key)
+
+    def close_task_resolution(self, request_id, request, key=None):
+        from urllib.parse import quote
+        return self.request("POST", f"blocked-task-requests/{quote(request_id, safe='')}:resolve",
+                            request, key=key)
+
+    def trigger_memory_events(self, project_id, *, binding_key=None, key=None):
+        return self.request("POST", "memory-events:trigger", {
+            "project_id": project_id, "binding_key": binding_key}, key=key)
+
+    def memory_event_status(self, project_id):
+        return self.request("GET", f"memory-events:status?project_id={project_id}")
+
+    def memory_event_reviews(self, project_id):
+        return self.request("GET", f"memory-events:reviews?project_id={project_id}")
+
+    def release_memory_event_hold(self, project_id, *, fingerprint=None, key=None):
+        """Skip held work, never authorize uncertain computation replay."""
+        return self.request("POST", "memory-events:release", {
+            "project_id": project_id, "fingerprint": fingerprint}, key=key)
+
+    def subscribe_agent_activity(self, project_id, *, cursor_path=None, read_timeout=10.0):
+        """Cancellable authorized activity frames, with optional durable cursor."""
+        from .activity_stream import ActivitySubscription
+        return ActivitySubscription(self.http, project_id=project_id, path_prefix="",
+                                    cursor_path=cursor_path, read_timeout=read_timeout)
+
+    def __init__(self, base_url, token, *, transport=None, telemetry=None, trace_identity=None):
+        self.http = httpx.Client(base_url=base_url.rstrip("/") + "/v1/",
                                  headers={"Authorization": f"Bearer {token}"}, timeout=15, transport=transport)
+        self.telemetry = telemetry
+        self.trace_identity = dict(trace_identity or {})
 
     def memory_pipeline(self, action, request=None, key=None):
         if action not in ("enqueue", "process", "tick", "freshness", "retrieve"):
             raise ValueError("Unsupported memory pipeline action")
         return self.request("POST", f"memory-pipeline:{action}", request, key=key)
 
+    def operation_context(self, operation_id=None):
+        """Get built-in operation purpose/schema/authority/retry context, never a grant."""
+        from urllib.parse import urlencode
+        query = "?" + urlencode({"operation_id": operation_id}) if operation_id is not None else ""
+        return self.request("GET", "tool-context" + query)
+
+    def command_receipt(self, operation, key):
+        """Prove own committed canonical command and current visibility, not model/file effects."""
+        from urllib.parse import urlencode
+        return self.request("GET", "commands/receipt?" + urlencode({"operation": operation, "key": key}))
+    def search_page(self, request, cursor=None):
+        """Authorized bounded retrieval; cursor is opaque and bound to this principal/query."""
+        body = dict(request)
+        if cursor is not None:
+            body["cursor"] = cursor
+        return self.request("POST", "retrieval:search-page", body)
+
     def reconcile_runtime(self, request, key=None):
         return self.request("POST", "runtime:reconcile", request, key=key)
 
     def request(self, method, path, body=None, key=None):
+        if self.telemetry is not None:
+            with self.telemetry.span("agent.query" if method == "GET" else "agent.command",
+                                     **self.trace_identity):
+                return self._request(method, path, body, key)
+        return self._request(method, path, body, key)
+
+    def _request(self, method, path, body=None, key=None):
         headers = {"Idempotency-Key": key or uid("cmd")} if method != "GET" else {}
         # A colon in the first segment otherwise becomes a URL scheme:
         # httpx resolves "events:batch" as "batch", losing the command name.
@@ -163,8 +325,68 @@ class Client:
     def task_plan(self, plan_id):
         return self.request("GET", f"task-plans/{plan_id}")
 
+    def create_goal(self, request, key=None):
+        return self.request("POST", "goals", request, key=key)
+
+    def goal(self, goal_id):
+        return self.request("GET", f"goals/{goal_id}")
+
+    def revise_goal(self, goal_id, request, key=None):
+        return self.request("POST", f"goals/{goal_id}:revise", request, key=key)
+
+    def tick_goal(self, goal_id, request=None, key=None):
+        return self.request("POST", f"goals/{goal_id}:tick", request or {}, key=key)
+
+    def propose_goal_plan(self, goal_id, request=None, key=None):
+        return self.request("POST", f"goals/{goal_id}:propose", request or {}, key=key)
+
     def handoff_task(self, task_id, request, key=None):
         return self.request("POST", f"tasks/{task_id}:handoff", request, key=key)
+
+    def offer_structured_handoff(self, request, key=None):
+        return self.request("POST", "structured-handoffs", request, key=key)
+
+    def structured_handoff(self, handoff_id):
+        return self.request("GET", f"structured-handoffs/{handoff_id}")
+
+    def decide_structured_handoff(self, handoff_id, action, request, key=None):
+        if action not in ("accept", "reject", "revoke"):
+            raise ValueError("Unsupported handoff decision")
+        return self.request("POST", f"structured-handoffs/{handoff_id}:{action}", request, key=key)
+
+    def consume_handoff_context(self, request, key=None):
+        return self.request("POST", "structured-handoffs:consume", request, key=key)
+
+    def set_routing_declaration(self, agent_id, request, key=None):
+        return self.request("POST", f"agents/{agent_id}/routing-declaration", request, key=key)
+
+    def query_routing(self, project_id, request):
+        return self.request("POST", f"projects/{project_id}/routing:query", request)
+
+    def approve_routing(self, project_id, request, key=None):
+        return self.request("POST", f"projects/{project_id}/routing:dispatch", request, key=key)
+
+    def create_artifact_contract(self, request, key=None):
+        return self.request("POST", "artifact-contracts", request, key=key)
+
+    def artifact_contract(self, contract_id):
+        return self.request("GET", f"artifact-contracts/{contract_id}")
+
+    def artifact_contract_action(self, contract_id, action, request, key=None):
+        if action not in ("revise", "revoke", "submit"):
+            raise ValueError("Unsupported artifact contract action")
+        return self.request("POST", f"artifact-contracts/{contract_id}:{action}", request, key=key)
+
+    def set_task_budget(self, project_id, request, key=None):
+        return self.request("POST", f"projects/{project_id}/budgets", request, key=key)
+
+    def task_budget(self, project_id, task_id):
+        return self.request("GET", f"projects/{project_id}/budgets/{task_id}")
+
+    def task_budget_action(self, project_id, action, request, key=None):
+        if action not in ("reserve", "settle", "checkpoint"):
+            raise ValueError("Unsupported task budget action")
+        return self.request("POST", f"projects/{project_id}/budgets:{action}", request, key=key)
 
     def review_automation_tick(self, project_id, limit=20, key=None):
         return self.request("POST", "review-automation:tick", {"project_id": project_id, "limit": limit}, key=key)
@@ -386,6 +608,9 @@ class ControlledAdapter:
                                         {"checkpoint_id": self.state["transition"]["checkpoint_id"]},
                                         key="checkpoint-" + control_id)
                 continue
+            if (control.get("action") not in ("pause", "resume", "cancel", "steer", "assign_task")
+                    or control.get("target_run_id", self.run) != self.run):
+                raise RuntimeError("Unsupported or foreign control at safe boundary")
             self.client.request("POST", f"controls/{control_id}:ack", {}, key="ack-" + control_id)
             action = control["action"]
             if action in ("steer", "assign_task"):

@@ -1,0 +1,40 @@
+{
+  "additionalProperties": false,
+  "description": "Operator decision for a ``manual_hold`` coordination action.\n\n``dismiss`` and ``escalate`` never alter ownership. ``reassign`` and\n``dead_letter`` require the execution to be absent or canonically settled;\n``acknowledge_unknown_effects`` is recorded for audit but is NOT evidence and\nnever bypasses that requirement.",
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "action": {
+      "enum": [
+        "reassign",
+        "escalate",
+        "dead_letter",
+        "dismiss"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "reason": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "acknowledge_unknown_effects": {
+      "default": false,
+      "title": "Acknowledge Unknown Effects",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "expected_revision",
+    "action",
+    "reason"
+  ],
+  "title": "HoldResolution",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,60 @@
+/* Task/run workspace (dashboard/src/TaskRunWorkspace.tsx). */
+.trw { display: flex; flex-direction: column; gap: 16px; padding: 28px 32px; color: inherit; flex: 1; min-height: 0; overflow: auto; }
+.trw-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 16px; }
+.trw-header h2 { margin: 0; font-size: 1.1rem; }
+.trw-counts { display: flex; gap: 12px; margin: 0; }
+.trw-counts div { display: flex; gap: 4px; align-items: baseline; }
+.trw-counts dt { font-size: 0.75rem; opacity: 0.7; text-transform: uppercase; }
+.trw-counts dd { margin: 0; font-weight: 600; }
+.trw-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.trw-filters input, .trw-dialog-card input, .trw-dialog-card textarea { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text); }
+.trw-filters input[type="search"] { flex: 1; min-width: 180px; }
+.trw-body { display: flex; gap: 16px; align-items: flex-start; }
+.trw-list { flex: 1; min-width: 0; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.trw-task { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%;
+  text-align: left; padding: 14px 16px; border: 1px solid var(--border);
+  border-radius: var(--radius-control); background: var(--surface); color: inherit; cursor: pointer; overflow-wrap: anywhere; }
+.trw-task:hover { border-color: var(--border-strong); }
+.trw-task--selected { border-color: var(--accent-border); background: var(--accent-surface); }
+.trw-title { font-weight: 600; }
+.trw-badge { font-size: 0.72rem; padding: 1px 6px; border-radius: 999px;
+  border: 1px solid rgba(127, 127, 127, 0.4); text-transform: uppercase; letter-spacing: 0.02em; }
+.trw-status-running { border-color: var(--info); color: var(--info); }
+.trw-status-failed { border-color: var(--danger); color: var(--danger); }
+.trw-status-completed { border-color: var(--success); color: var(--success); }
+.trw-status-paused { border-color: var(--warning); color: var(--warning); }
+.trw-plan, .trw-priority, .trw-agent, .trw-deps, .trw-blocked, .trw-escalated {
+  font-size: 0.75rem; opacity: 0.85; }
+.trw-blocked, .trw-escalated { color: var(--warning); opacity: 1; }
+.trw-agent-link { background: transparent; border: 0; color: var(--text); padding: 4px 8px;
+  font-size: 0.75rem; text-decoration: underline; cursor: pointer; }
+.trw-empty { opacity: 0.7; padding: 12px; }
+.trw-note { font-size: 0.78rem; opacity: 0.7; margin: 4px 0; }
+.trw-error { color: var(--danger); margin: 4px 0; }
+.trw-status { opacity: 0.75; }
+.trw-detail { flex: 0 0 340px; min-width: 0; border: 1px solid var(--border);
+  border-radius: var(--radius-panel); padding: 20px; display: flex; flex-direction: column; gap: 12px; background: var(--surface); overflow-wrap: anywhere; }
+.trw-detail header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.trw-detail h3 { margin: 0; font-size: 1rem; }
+.trw-detail h4 { margin: 0 0 6px; font-size: 0.85rem; }
+.trw-facts { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+.trw-facts dt { font-size: 0.75rem; opacity: 0.7; }
+.trw-facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.trw-blockers ul, .trw-history ul, .trw-requests ul { margin: 4px 0; padding-left: 18px; }
+.trw-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.trw-actions h4 { width: 100%; }
+.trw-requests { border-top: 1px solid var(--border); padding-top: 8px; }
+.trw-requests li { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 4px 0; }
+.trw-dialog { position: fixed; inset: 0; background: var(--overlay);
+  display: flex; align-items: center; justify-content: center; z-index: 40; }
+.trw-dialog-card { background: var(--surface); color: var(--text); border-radius: var(--radius-panel);
+  padding: 24px; width: min(420px, 90vw); max-height: 90dvh; overflow: auto; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow-popover); }
+.trw-dialog-card h3 { margin: 0; }
+.trw-dialog-card label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; }
+.trw-dialog-actions { display: flex; gap: 8px; justify-content: flex-end; }
+@media (max-width: 900px) {
+  .trw { padding: 22px 16px; }
+  .trw-body { flex-direction: column; align-items: stretch; }
+  .trw-detail { flex-basis: auto; }
+  .trw-filters input[type="search"] { min-width: 0; flex-basis: 100%; }
+}

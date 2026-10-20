@@ -74,7 +74,7 @@ def test_real_http_command_paths_keep_colon_and_api_prefix():
         return httpx.Response(200, json={"data": {"ok": True}})
     connection = Client("http://127.0.0.1:8765", "test-only")
     connection.http.close()
-    connection.http = httpx.Client(base_url="http://127.0.0.1:8765/v0.1/",
+    connection.http = httpx.Client(base_url="http://127.0.0.1:8765/v1/",
                                    transport=httpx.MockTransport(handler))
     try:
         connection.request("POST", "events:batch", {"events": []})
@@ -82,9 +82,9 @@ def test_real_http_command_paths_keep_colon_and_api_prefix():
         connection.request("POST", "runs/run-id/permits:check", {})
     finally:
         connection.close()
-    assert seen == ["http://127.0.0.1:8765/v0.1/events:batch",
-                    "http://127.0.0.1:8765/v0.1/context:query",
-                    "http://127.0.0.1:8765/v0.1/runs/run-id/permits:check"]
+    assert seen == ["http://127.0.0.1:8765/v1/events:batch",
+                    "http://127.0.0.1:8765/v1/context:query",
+                    "http://127.0.0.1:8765/v1/runs/run-id/permits:check"]
 
 
 def test_discovery_does_not_grant_external_tools_and_budget_counts_denials(world, tmp_path, monkeypatch):
@@ -98,7 +98,7 @@ def test_discovery_does_not_grant_external_tools_and_budget_counts_denials(world
             response = world.client.request(request.method, request.url.raw_path.decode(),
                                             content=request.content, headers=request.headers)
             return httpx.Response(response.status_code, content=response.content, headers=response.headers)
-        connection.http = httpx.Client(base_url=base_url.rstrip("/") + "/v0.1/",
+        connection.http = httpx.Client(base_url=base_url.rstrip("/") + "/v1/",
                                        headers={"Authorization": "Bearer " + token},
                                        transport=httpx.MockTransport(handler))
         return connection

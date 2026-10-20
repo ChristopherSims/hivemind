@@ -1,0 +1,84 @@
+{
+  "additionalProperties": false,
+  "description": "One explicit context-exploration request. ``project_id`` comes from the path,\nnever the body, so a body cannot retarget another project.",
+  "properties": {
+    "query": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Query",
+      "type": "string"
+    },
+    "mode": {
+      "default": "hybrid",
+      "enum": [
+        "lexical",
+        "semantic",
+        "hybrid"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "limit": {
+      "default": 10,
+      "maximum": 50,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    },
+    "resource_kinds": {
+      "items": {
+        "enum": [
+          "agent",
+          "board_post",
+          "memory",
+          "task",
+          "work_claim",
+          "artifact"
+        ],
+        "type": "string"
+      },
+      "maxItems": 6,
+      "title": "Resource Kinds",
+      "type": "array"
+    },
+    "expand_graph": {
+      "default": true,
+      "title": "Expand Graph",
+      "type": "boolean"
+    },
+    "graph_seeds": {
+      "default": 4,
+      "maximum": 8,
+      "minimum": 0,
+      "title": "Graph Seeds",
+      "type": "integer"
+    },
+    "max_hops": {
+      "default": 1,
+      "maximum": 3,
+      "minimum": 1,
+      "title": "Max Hops",
+      "type": "integer"
+    },
+    "max_nodes": {
+      "default": 40,
+      "maximum": 100,
+      "minimum": 1,
+      "title": "Max Nodes",
+      "type": "integer"
+    },
+    "max_edges": {
+      "default": 80,
+      "maximum": 200,
+      "minimum": 1,
+      "title": "Max Edges",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "query"
+  ],
+  "title": "ExploreBody",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
