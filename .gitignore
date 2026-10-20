@@ -12,14 +12,13 @@ test-results/
 playwright-report/
 *.egg-info/
 
-#testing stuff
+# operator-local artifacts: benchmarks, planning/milestone docs, private notes
 benchmarks
 benchmarks/*
 .memory
 .memory/*
-
-# planning/milestone docs moved to .memory by the operator
 hivemind-plan.md
 completed.md
+todo.md
 .hivemind-swarm/
 .hivemind-swarm-data/

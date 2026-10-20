@@ -6,7 +6,7 @@ runs), 3 registered OMP agents (Builder / Backend / Documenter, ollama-cloud
 glm-5.3-flash:low), 4 exact-path scopes, 4 tasks, 1 capture daemon per agent,
 OMP 18.12.3 headless `-p` sessions with the capture extension.
 
-Recipe: docs/agent-swarm-live-test.md. Script: scripts/omp_swarm_live.py.
+Recipe: .memory/agent-swarm-live-test.md. Script: scripts/omp_swarm_live.py.
 
 Four full runs + targeted completion turns (every run restarts sessions; all
 real model turns; no scripted file writes).
@@ -29,7 +29,7 @@ Canonical evidence after all runs (GET /v1/ledger, /v1/events, /v1/conflicts):
   claims: final 2 active (others superseded/expired); same-agent new-run
           supersession verified live (claim 28bff8 -> superseded by run …aba7)
 
-Findings (driving docs/agent-swarm-live-test.md "context-sufficiency" work):
+Findings (driving .memory/agent-swarm-live-test.md "context-sufficiency" work):
   F1 dispatched task text does not reach a bare headless turn (needs packet injection)
   F2 dependency gating was manual prompt prose; parallel turns burned model time
   F3 agents had no teammate visibility (roster cards absent from packet)

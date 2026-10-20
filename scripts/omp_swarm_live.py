@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Real OMP headless agent swarm building an example codebase through Hivemind.
 
-Reference run: `docs/agent-swarm-live-test.md`. Requires:
+Reference run: `.memory/agent-swarm-live-test.md`. Requires:
 - A running Hivemind service on 127.0.0.1:8765 (`hivemind serve --embeddings`)
 - Bun + installed `omp` (headless `-p` mode) with a configured model
 - A configured model provider; each agent runs real model turns
@@ -219,7 +219,7 @@ def main() -> int:
         # Parallel dispatch without dependency gating burned turns in the first run:
         # Backend's app.js turn started before its upstream modules existed and the
         # Documenter read an empty workspace. A real dependency-gated dispatch would
-        # order these; see docs/agent-swarm-live-test.md findings.
+        # order these; see .memory/agent-swarm-live-test.md findings.
         turns = []
         for (agent_name, _target), prompt in WORK.items():
             payload = agents[agent_name]
