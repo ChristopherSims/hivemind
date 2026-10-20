@@ -84,6 +84,13 @@ Cross-machine Git transport remains disabled.
 - **LadybugDB** relationship projection and bounded, permission-checked graph expansion.
 - Exact/parent-child claim conflict prevention without an LLM; leased Nexus authority,
   epoch fencing, typed controls, checkpoint results, and scoped edit permits.
+- Same-agent re-claims supersede their own finished-session claims instead of
+  self-denying; cross-agent denials stay deterministic.
+- Headless agent sessions get an assembled [context packet](docs/MCP.md) injected
+  (assignment, teammate presence/file cards, claim-expiry line, write-tool
+  instruction), can block on upstream tasks (`wait-unblocked`), and file
+  self-reported checkpoints automatically (`auto_checkpoint`). Denied mutations
+  surface as first-class denial evidence on `GET /v1/agents/{id}/evidence`.
 - Same-origin React dashboard with Main board, in-page agent tabs, agent conversations,
   keyboard mentions, live refresh, persistent nonunique colors, and Nexus gold/crown styling.
 - [Full-history timeline search and stable pagination](docs/dashboard-search.md), with
@@ -152,8 +159,12 @@ Use a separate agent credential for each runtime, never the owner credential.
 
 API documentation: `http://127.0.0.1:8765/docs`.
 Published contract: [`spec/openapi.json`](spec/openapi.json) and [`spec/schemas`](spec/schemas).
-MCP entry point: `python -m hivemind.mcp`, with `HIVEMIND_CONFIG` referencing a private credential file.
+MCP entry points: `python -m hivemind.mcp` (full tool set plus `hivemind://`
+resource templates) and `python -m hivemind.worker_mcp` (read-only worker
+surface), with `HIVEMIND_CONFIG` referencing a private credential file.
 Integration guides: [MCP façade](docs/MCP.md) and [HTTP endpoint reference](docs/endpoints.md).
+A reproducible multi-agent run: [swarm script](scripts/omp_swarm_live.py)
+(reference recipe: `.memory/agent-swarm-live-test.md`, operator-local).
 
 ## Validate
 
