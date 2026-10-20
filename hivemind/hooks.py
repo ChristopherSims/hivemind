@@ -126,7 +126,7 @@ def invoke(config, payload):
         raise
 
 
-def checkpoint_task(client, config, task_id, paths, call_id):
+def checkpoint_task(client, config, task_id, paths, call_id, run_id=None):
     """R5: file a self-reported progress checkpoint for the run's bound task.
 
     Only fires with a live execution this run owns (server-checked). The status
@@ -141,7 +141,8 @@ def checkpoint_task(client, config, task_id, paths, call_id):
         # (fresh fenced execution) before checkpointing; the server gates start on
         # valid current claims, so a missing claim fails here and stays advisory.
         started = client.request("POST", f"tasks/{task_id}:start", {
-            "run_id": config["run_id"], "expected_revision": task["revision"],
+            "run_id": run_id or config.get("run_id"),
+            "expected_revision": task["revision"],
             "recover": False}, key="auto-start-" + call_id)
         task = started  # the start response carries the saved task (fresh revision)
         execution = task.get("execution") or {}
@@ -361,7 +362,7 @@ def _invoke(config, payload):
                     if config.get("auto_checkpoint") is True and adapter.state.get("task_id"):
                         try:
                             checkpoint_task(client, config, adapter.state["task_id"],
-                                            changed_paths, call_id)
+                                            changed_paths, call_id, run_id=run_id)
                         except Exception as checkpoint_error:  # noqa: BLE001
                             state["last_checkpoint_error"] = repr(checkpoint_error)[:200]
                 mapping.write_text(json.dumps(state))
