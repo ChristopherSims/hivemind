@@ -717,7 +717,7 @@ def create_app(directory=".hivemind-data", encoder=None, workers=True, capabilit
             post = store.get(post_id, p)
             if row["owner"] != p["id"] and p["role"] != "admin":
                 raise Problem("forbidden", 403)
-            # Mention targets are immutable in this milestone; revisions may edit text, not routing.
+            # Mention targets are immutable; revisions may edit text, not routing.
             if body.content.segments is not None:
                 raise Problem("rich_post_revision_not_supported", 422)
             post["content"] = body.content.model_dump(exclude_none=True)

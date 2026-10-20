@@ -8,8 +8,9 @@ Reference run: `.memory/agent-swarm-live-test.md`. Requires:
 
 The swarm builds a tiny TODO REST service in three deliberately interlocking
 parts, dispatched as Hivemind tasks, with the capture extension observing every
-tool call. Each agent sends one direct message asking another agent a question
-and reads the reply through its inbox — the messaging gate from plan milestone 4.
+tool call. Each agent can send direct messages and read replies through its
+inbox (the durable messaging surface); see the reference recipe in
+`.memory/agent-swarm-live-test.md`.
 
 Run:  .venv/Scripts/python.exe scripts/omp_swarm_live.py --workspace .hivemind-swarm
 """

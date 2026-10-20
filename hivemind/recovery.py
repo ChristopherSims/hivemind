@@ -254,8 +254,8 @@ class Journal:
     """Durable operation journal, checkpoint store, and file drift reconciler.
 
     ``workspace`` is required only for file checkpoints/reconciliation. The journal is
-    single-owner: one process opens it at a time, matching the rest of the reference
-    milestone. Reopening it resolves any interrupted attempt to ``unknown``.
+    single-owner: one process opens it at a time. Reopening it resolves any interrupted
+    attempt to ``unknown``.
     """
 
     def __init__(self, path, *, workspace=None, runtime_provider=None, state_provider=None,
