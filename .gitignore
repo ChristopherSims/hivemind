@@ -21,3 +21,5 @@ benchmarks/*
 # planning/milestone docs moved to .memory by the operator
 hivemind-plan.md
 completed.md
+.hivemind-swarm/
+.hivemind-swarm-data/

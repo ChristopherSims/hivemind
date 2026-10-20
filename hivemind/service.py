@@ -1085,6 +1085,17 @@ class Service:
         for existing in reversed(self.active_claims(principal, request.project_id)):
             if existing["run_id"] == request.run_id:
                 continue
+            # The same agent's own still-registered claim from a finished session is
+            # superseded, not denied: one agent owning one scope is exactly the plan's
+            # ownership model, and a new run for that agent re-establishes it.
+            # A different agent's exclusive claim still denies deterministically.
+            if existing.get("agent_id") == request.agent_id:
+                superseded = self.store.get(existing["id"], principal, "work_claim")
+                superseded.update(state="superseded", superseded_by_run_id=request.run_id)
+                row = self.store.raw(existing["id"])
+                self.store.save("work_claim", row["project"], row["owner"], superseded,
+                                expected=row["revision"])
+                continue
             incompatible = ("exclusive_owner" in (request.mode, existing["mode"])
                             and request.mode != "observer" and existing["mode"] != "observer")
             if incompatible and self.overlaps(principal, request.project_id, request.scope_ids, existing["scope_ids"]):

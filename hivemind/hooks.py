@@ -106,6 +106,17 @@ def _invoke(config, payload):
     if mapping.exists():
         state = json.loads(mapping.read_text())
         state.setdefault("session_id", session_id)
+        # A mapping without a persisted claim (claim POST failed mid-session earlier)
+        # retries claim creation on the next invocation instead of staying claimless.
+        if not state.get("claim_id") and state.get("scope_ids") and not config.get("managed_run_id"):
+            state["claim_id"] = client.request(
+                "POST", "work-claims", {
+                    "project_id": config["project_id"], "agent_id": config["agent_id"],
+                    "run_id": state["run_id"], "scope_ids": state["scope_ids"],
+                    "intent": config.get("intent", "Instrumented agent work"),
+                    "ttl_seconds": config.get("initial_claim_ttl_seconds", 120),
+                }, key="initial-claim-" + session_key)["id"]
+            mapping.write_text(json.dumps(state))
     else:
         if config.get("managed_run_id"):
             run = client.request("GET", f"runs/{config['managed_run_id']}")
@@ -115,7 +126,8 @@ def _invoke(config, payload):
             run = client.request("POST", "runs", {"project_id": config["project_id"], "agent_id": config["agent_id"]},
                                  key="session-" + session_key)
         state = {"run_id": run["id"], "session_id": session_id, "scope_ids": config.get("scope_ids", [])}
-        mapping.write_text(json.dumps(state))
+        # The claim must exist before the mapping does: a mapping written first sticks
+        # forever claimless when the claim POST fails (session reruns skip creation).
         if state["scope_ids"] and not config.get("managed_run_id"):
             claim = client.request("POST", "work-claims", {
                 "project_id": config["project_id"], "agent_id": config["agent_id"], "run_id": run["id"],
@@ -123,7 +135,7 @@ def _invoke(config, payload):
                 "ttl_seconds": config.get("initial_claim_ttl_seconds", 120),
             }, key="initial-claim-" + session_key)
             state["claim_id"] = claim["id"]
-            mapping.write_text(json.dumps(state))
+        mapping.write_text(json.dumps(state))
     run_id = state["run_id"]
     if config.get("managed_run_id"):
         if run_id != config["managed_run_id"]:

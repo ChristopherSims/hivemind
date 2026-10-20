@@ -74,6 +74,32 @@ def test_exact_structural_claims_and_scoped_permits(world):
     world.call("POST", f"runs/{rb['id']}/permits:check", {"scope_ids": [parent["id"]]}, status=403)
 
 
+def test_same_agent_new_run_supersedes_own_expired_session_claim(world):
+    """A re-claim from the same agent supersedes its own earlier claim (live-run finding:
+    dead session claims denied the agent's fresh session). Other agents still deny."""
+    a, b = world.agent(), world.agent()
+    scope = world.scope("one/x", paths=["src/x"])
+    first_run = world.run(a)
+    first = world.claim(a, first_run, scope)
+    assert first.get("denied") is not True
+    # Different agent, same scope: still a real denial (unchanged contract).
+    rb = world.run(b)
+    denial = world.claim(b, rb, scope, status=409)
+    assert denial["denied"]
+    # Same agent, NEW run: supersedes its own claim instead of being denied.
+    second_run = world.run(a)
+    second = world.claim(a, second_run, scope)
+    assert second.get("denied") is not True
+    refreshed = world.app.state.store.get(first["id"],
+                                          {"role": "admin", "project": world.project},
+                                          "work_claim")
+    assert refreshed["state"] == "superseded"
+    assert refreshed["superseded_by_run_id"] == second_run["id"]
+    # New claim is the live owner: permit check passes for the new run only.
+    world.call("POST", f"runs/{second_run['id']}/permits:check",
+               {"scope_ids": [scope["id"]], "paths": ["src/x"]})
+
+
 def test_atomic_simultaneous_claims(world):
     from hivemind.storage import Problem
     a, b = world.agent(), world.agent()
