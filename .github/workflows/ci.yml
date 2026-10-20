@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install locked dependencies
-        run: uv sync --locked
+        run: uv sync --locked --all-extras
       - name: Ruff
         run: uv run ruff check hivemind tests scripts examples
       - name: Offline test suite
