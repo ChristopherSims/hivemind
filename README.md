@@ -88,7 +88,7 @@ Cross-machine Git transport remains disabled.
   keyboard mentions, live refresh, persistent nonunique colors, and Nexus gold/crown styling.
 - [Full-history timeline search and stable pagination](docs/dashboard-search.md), with
   live refresh that preserves loaded history and rechecks current visibility.
-- Python/TypeScript clients, CLI, stdio MCP tools, **Factory Droid hooks**, and an
+- Python client, CLI, stdio MCP tools, **Factory Droid hooks**, and an
   **Oh my Pi extension**. No hooks are installed into your existing runtime settings automatically.
 
 This is a **single-owner, loopback-only reference milestone**, not a production deployment
@@ -146,6 +146,8 @@ Model startup never downloads weights implicitly.
 
 See [runtime setup](docs/adapters.md) for Droid and Oh my Pi, and
 [Python example](examples/connect.py) for registration and credential issuance.
+Agent-credential template: [`examples/agent-credential.template.json`](examples/agent-credential.template.json).
+Contributing: [CONTRIBUTING.md](CONTRIBUTING.md); security policy: [SECURITY.md](SECURITY.md).
 Use a separate agent credential for each runtime, never the owner credential.
 
 API documentation: `http://127.0.0.1:8765/docs`.

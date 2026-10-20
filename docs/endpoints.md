@@ -188,8 +188,8 @@ each call, including vector/graph results.
 
 1. **MCP** — `python -m hivemind.mcp` (full tools plus `hivemind://`
    resource templates) or `python -m hivemind.worker_mcp`
-   (worker read-only eight) with `HIVEMIND_CONFIG`; see [MCP](MCP.md).
-2. **HTTP SDKs** — Python (`hivemind.sdk.Client`) and TypeScript clients; SDK emitters
+   (worker read-only nine) with `HIVEMIND_CONFIG`; see [MCP](MCP.md).
+2. **HTTP SDKs** — Python (`hivemind.sdk.Client`); the TypeScript surface is `sdk/typescript/src/index.ts` types+client; SDK emitters
    and durable spooling for capture.
 3. **Host hooks/adapters** — Factory Droid hooks and Oh my Pi extension for
    observation + tool-boundary guarding ([adapters](adapters.md)); managed-worker
