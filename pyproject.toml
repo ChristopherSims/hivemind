@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hivemind-reference"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Local-first governed agent memory and coordination"
 requires-python = ">=3.12"
 license = "MIT"
@@ -25,6 +25,9 @@ runtimes = [
 
 [project.scripts]
 hivemind = "hivemind.cli:main"
+
+[tool.hatch.version]
+path = "VERSION"
 
 [tool.hatch.build.targets.wheel]
 packages = ["hivemind"]

@@ -15,6 +15,7 @@ from pydantic import ValidationError
 from starlette.routing import Match
 
 from . import live_state, models as m
+from . import __version__
 from .indexes import Indexes
 from .service import Service
 from .storage import Problem, Store, canonical, uid
@@ -140,7 +141,7 @@ def create_app(directory=".hivemind-data", encoder=None, workers=True, capabilit
         if telemetry:
             await asyncio.to_thread(telemetry.close)
 
-    app = FastAPI(title="Hivemind", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="Hivemind", version=__version__, lifespan=lifespan)
     app.state.store = store
     app.state.service = service
     app.state.indexes = indexes
