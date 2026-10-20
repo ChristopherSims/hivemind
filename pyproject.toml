@@ -28,6 +28,7 @@ hivemind = "hivemind.cli:main"
 
 [tool.hatch.version]
 path = "VERSION"
+pattern = "(?i)^(?P<version>.+?)$"
 
 [tool.hatch.build.targets.wheel]
 packages = ["hivemind"]
