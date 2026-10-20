@@ -11,5 +11,3 @@ dashboard/dist/
 test-results/
 playwright-report/
 *.egg-info/
-
-*.md

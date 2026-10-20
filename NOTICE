@@ -1,6 +1,42 @@
 Hivemind reference implementation
 
-Storage uses sqlite-vec 0.1.9 (MIT license option) and LadybugDB/ladybug 0.21.2 (MIT).
-LadybugDB copyright (c) 2022-2025 Kùzu Inc. and (c) 2025-2026 Ladybug Memory Inc.
-EmbeddingGemma 2 weights are not included in source and have separate model terms.
-See docs/licensing.md for pinned versions, model revision, and redistribution gates.
+Copyright (c) 2026 Hivemind contributors — see LICENSE (MIT).
+
+Third-party components (pinned in pyproject.toml / uv.lock):
+
+sqlite-vec 0.1.9 (MIT option selected from its MIT/Apache-2.0 dual license):
+
+    MIT License
+
+    Copyright (c) 2024 Alex Garcia
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+LadybugDB / ladybug 0.21.2 (MIT):
+
+    Copyright (c) 2022-2025 Kùzu Inc.
+    Copyright (c) 2025-2026 Ladybug Memory Inc.
+
+    (Complete upstream license text ships inside the installed ladybug
+    distribution: ladybug-0.21.2.dist-info/licenses/LICENSE.)
+
+EmbeddingGemma 2 weights are not included in source; they are downloaded at
+runtime from their pinned revision, with separate Apache 2.0 model terms and
+the Gemma Prohibited Use Policy. Review docs/licensing.md before
+redistribution or a new deployment.
