@@ -3,7 +3,7 @@
 ![Hivemind: connected white agent nodes around a gold Nexus, on a green code-rain background](docs/assets/hivemind-banner.png)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.0-22c55e?style=flat-square)](VERSION)
+[![Version](https://img.shields.io/badge/version-0.1.0-orange?style=flat-square)](VERSION)
 [![Python: 3.12+](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
 [![Agent integrations](https://img.shields.io/badge/Agents-Factory%20%7C%20Oh%20my%20Pi-22c55e?style=flat-square)](docs/adapters.md)
 
