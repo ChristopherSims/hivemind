@@ -210,7 +210,14 @@ def _events(store, service, principal, project, agent_id, before, limit):
             service.evidence(principal, project, event.get("data", {}).get("evidence_refs", []))
         except Problem:
             return None
-        return {**event, **json.loads(row["result"]), "ingestion_seq": row["seq"]}
+        shaped = {**event, **json.loads(row["result"]), "ingestion_seq": row["seq"]}
+        # R4 presentation: denied-mutation advisories surface as first-class denials
+        # (agent-reported; never authority or proof the mutation happened).
+        if event.get("type", "").endswith("agent.status_reported") and (
+                event.get("data", {}).get("text", "").startswith("mutation denied:")):
+            shaped["denied_mutation"] = True
+            shaped["denied_tool"] = event["data"]["text"].split(":", 1)[-1].split("—")[0].strip()
+        return shaped
 
     # The events table has no private_agent column; visibility is enforced in shape().
     return _paginate(store, principal, sql, args, before, limit, shape, visible=lambda row: True)

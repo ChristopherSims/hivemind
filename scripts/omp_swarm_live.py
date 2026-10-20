@@ -141,8 +141,10 @@ def main() -> int:
                                "state_dir": str(private_root / name / "state"),
                                "scope_ids": [],  # set per assignment below
                                "intent": intent,
-                               "initial_claim_ttl_seconds": 300,
-                               "flush_interval_seconds": 5})
+                               "initial_claim_ttl_seconds": 600,
+                               "flush_interval_seconds": 5,
+                               "session_context": {"token_budget": 3200},
+                               "auto_checkpoint": True})
         agents[name] = {"agent": agent, "token": token, "config": config}
         print(f"agent {name}: {agent['id']}")
     store.close()
@@ -200,6 +202,16 @@ def main() -> int:
             "project_id": project, "title": title, "scope_ids": [scopes[scope_key]["id"]]})
         tasks[title] = task
     print(json.dumps({"tasks": {k: v["id"] for k, v in tasks.items()}}, indent=1))
+
+    # Bind each agent's primary task: the hooks session passes it to the session note
+    # (R1/R2/R3/R8) and enables adapter-side auto-checkpointing (R5).
+    primary_task = {"Builder": "Build store module", "Backend": "Build app",
+                    "Documenter": "Write README"}
+    for name, title in primary_task.items():
+        payload = agents[name]
+        config = json.loads(payload["config"].read_text(encoding="utf-8"))
+        config["provisioned_task_id"] = tasks[title]["id"]
+        private_write(payload["config"], config)
 
     if args.dry_run:
         return 0

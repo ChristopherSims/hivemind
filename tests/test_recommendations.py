@@ -219,8 +219,7 @@ def test_auto_checkpoint_files_progress_on_bound_task(hooks_world, tmp_path):
     world.claim(a, ra, scope, ta)
     task = world.call("POST", "tasks", {"project_id": world.project, "title": "T",
                                         "scope_ids": [scope["id"]]})
-    world.call("POST", f"tasks/{task['id']}:start",
-               {"run_id": ra["id"], "expected_revision": task["revision"], "recover": False})
+    # task intentionally NOT pre-started: the hooks auto-checkpoint must auto-start it
     (tmp_path / "ws" / "src/task").mkdir(parents=True)
     target = tmp_path / "ws" / "src/task" / "mod.ts"
     config = {"base_url": "http://testserver", "token": ta,
@@ -240,6 +239,9 @@ def test_auto_checkpoint_files_progress_on_bound_task(hooks_world, tmp_path):
                           "tool_input": {"file_path": str(target)}})
     hooks.invoke(config, {"session_id": "ckp-sess", "hook_event_name": "PostToolUse",
                           "tool_name": "write", "toolCallId": "ckp-1", "isError": False})
+    state_file = state_dir / f"{session_key}.json"
+    recorded = json.loads(state_file.read_text())
+    assert not recorded.get("last_checkpoint_error"), recorded["last_checkpoint_error"]
     updated = world.call("GET", f"tasks/{task['id']}")
     checkpoint = (updated.get("execution") or {}).get("checkpoint") or {}
     assert checkpoint.get("summary", "").startswith("Auto-checkpoint")

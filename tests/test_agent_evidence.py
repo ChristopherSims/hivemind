@@ -183,3 +183,23 @@ def test_evidence_event_disappears_when_its_evidence_is_revoked(evidence):
                    {**body, "content": {"media_type": "text/plain", "text": "changed"}})
     after = evidence.call("GET", f"agents/{agent['id']}/evidence")
     assert after["events"]["items"] == []
+
+
+def test_evidence_flags_denied_mutation_events(evidence):
+    """R4: an agent-reported 'mutation denied' status event surfaces with
+    denied_mutation/denied_tool markers on the agent evidence read."""
+    world = evidence
+    a = world.agent()
+    ta = world.credential(a)
+    ra = world.run(a, ta)
+    denial = event(world, a, ra, 0, "agent.status_reported",
+                   {"text": "mutation denied: write — RuntimeError"})
+    ordinary = event(world, a, ra, 1, "tool.started", {"call_id": uid("c"), "name": "read"})
+    world.call("POST", "events:batch", {"events": [denial, ordinary]}, ta)
+    body = world.call("GET", f"agents/{a['id']}/evidence?project_id={world.project}")
+    events_section = body["events"]
+    flagged = [item for item in events_section["items"] if item.get("denied_mutation")]
+    assert flagged and flagged[0]["denied_tool"] == "write"
+    # ordinary tool events are never flagged
+    assert all(not item.get("denied_mutation")
+               for item in events_section["items"] if item.get("type", "").endswith("tool.started"))

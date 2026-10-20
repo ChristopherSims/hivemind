@@ -136,6 +136,15 @@ def checkpoint_task(client, config, task_id, paths, call_id):
     from .storage import uid
     task = client.request("GET", f"tasks/{task_id}")
     execution = task.get("execution") or {}
+    if not execution.get("id"):
+        # A provisioned-but-never-started task: the adapter starts it under this run
+        # (fresh fenced execution) before checkpointing; the server gates start on
+        # valid current claims, so a missing claim fails here and stays advisory.
+        started = client.request("POST", f"tasks/{task_id}:start", {
+            "run_id": config["run_id"], "expected_revision": task["revision"],
+            "recover": False}, key="auto-start-" + call_id)
+        task = started  # the start response carries the saved task (fresh revision)
+        execution = task.get("execution") or {}
     if config.get("run_id") and execution.get("run_id") != config["run_id"]:
         raise RuntimeError("Auto-checkpoint: execution not bound to this run")
     client.checkpoint_task(task_id, {
@@ -354,7 +363,7 @@ def _invoke(config, payload):
                             checkpoint_task(client, config, adapter.state["task_id"],
                                             changed_paths, call_id)
                         except Exception as checkpoint_error:  # noqa: BLE001
-                            state["last_checkpoint_error"] = type(checkpoint_error).__name__
+                            state["last_checkpoint_error"] = repr(checkpoint_error)[:200]
                 mapping.write_text(json.dumps(state))
         elif event in ("SessionStart", "session_start"):
             capture.observe("agent.status_reported", {"text": f"{runtime} runtime connected"}, critical=True)
