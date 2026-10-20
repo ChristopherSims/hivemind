@@ -45,7 +45,7 @@ def install(app, service, principal, command, envelope, options=None):
         module = import_module(f"hivemind.{name}")
         module_options = dict((options or {}).get(name, {}))
         if name == "blocked_tasks":
-            module_options.setdefault("policy", module.BlockedTasksPolicy(explain_enabled=False))
+            module_options.setdefault("policy", module.BlockedTasksPolicy())
         if name == "memory_event_bridge":
             module.install(app, service, app.state.memory_lifecycle, principal, command,
                            envelope, **module_options)

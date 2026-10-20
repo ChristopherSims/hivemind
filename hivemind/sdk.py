@@ -297,6 +297,18 @@ class Client:
     def assemble_context(self, request):
         return self.request("POST", "context:assemble", request)
 
+    def wait_unblocked(self, project_id, task_id, *, run_id=None, agent_id=None,
+                       timeout_seconds=30, poll_interval_seconds=2):
+        """Bounded block-on-upstream (R6): poll readiness until startable/deadline."""
+        from urllib.parse import urlencode
+        query = {name: value for name, value in
+                 (("run_id", run_id), ("agent_id", agent_id),
+                  ("timeout_seconds", timeout_seconds),
+                  ("poll_interval_seconds", poll_interval_seconds)) if value is not None}
+        path = (f"projects/{project_id}/tasks/{task_id}/wait-unblocked?"
+                + urlencode(query))
+        return self.request("GET", path)
+
     def create_task_plan(self, request, key=None):
         return self.request("POST", "task-plans", request, key=key)
 

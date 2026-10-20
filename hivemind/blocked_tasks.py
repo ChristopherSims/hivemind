@@ -1096,6 +1096,38 @@ def install(app, service, principal, command, envelope, *, policy=None):
                                        run_id=run_id, agent_id=agent_id))
     endpoints.append("GET /v1/projects/{project_id}/tasks/{task_id}/blocked-status")
 
+    @app.get("/v1/projects/{project_id}/tasks/{task_id}/wait-unblocked")
+    async def wait_unblocked(project_id: str, task_id: str,
+                             run_id: str | None = Query(None),
+                             agent_id: str | None = Query(None),
+                             timeout_seconds: float = Query(30, ge=0, le=120),
+                             poll_interval_seconds: float = Query(2, ge=0.5, le=10),
+                             p=Depends(principal)):
+        """R6: bounded block-on-upstream. Polls the readiness explanation until the
+        task is startable (or its status leaves queued/blocked states), or until the
+        deadline. Returns the last evaluation with ``waited_seconds`` and
+        ``unblocked``; never raises for still-blocked work — that is a normal
+        result, not an error. A task deleted mid-wait returns its last verdict."""
+        _bounded_id(run_id, "run_id")
+        _bounded_id(agent_id, "agent_id")
+        import asyncio
+        deadline = time.monotonic() + min(timeout_seconds, 120)
+        interval = max(poll_interval_seconds, 0.5)
+        started = time.time()
+        verdict = handle.explain(p, project_id, task_id, run_id=run_id, agent_id=agent_id)
+        while not verdict.get("ready") and verdict.get("task_status") in ("queued", None) \
+                and time.monotonic() < deadline:
+            try:
+                await asyncio.sleep(interval)
+                verdict = handle.explain(p, project_id, task_id, run_id=run_id, agent_id=agent_id)
+            except Problem:
+                # Deleted/hidden mid-wait: report the last good verdict honestly.
+                break
+        verdict = {**verdict, "unblocked": bool(verdict.get("ready")),
+                   "waited_seconds": round(time.time() - started, 2)}
+        return envelope(verdict)
+    endpoints.append("GET /v1/projects/{project_id}/tasks/{task_id}/wait-unblocked")
+
     if handle.policy.requests_enabled:
         @app.post("/v1/projects/{project_id}/blocked-tasks:request")
         async def request_create(project_id: str, body: ResolutionRequestCreate,

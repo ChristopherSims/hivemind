@@ -323,7 +323,7 @@ settings are modified.
 - **Factory:** the SDK receives a session-local `StdioMcpServerConfig` pointing to
   `python -m hivemind.worker_mcp`. Saved-session loads receive the same descriptor.
   Before each prompt, the runtime requires the sole Hivemind server to be connected,
-  its exact eight-tool catalog to be enabled, unambiguous vendor tool IDs, and a
+  its exact nine-tool catalog to be enabled, unambiguous vendor tool IDs, and a
   verified exact restriction to native scoped tools plus those MCP IDs. Missing or
   drifted evidence holds the turn. Repository/parent `.factory/mcp.json` launchers
   are rejected rather than merged or overwritten.

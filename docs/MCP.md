@@ -106,11 +106,11 @@ credential receives not-found for a `private: true` memory owned by a different
 agent, and a credential bound to a different project receives not-found for a
 foreign `hivemind://ledger` — see `tests/test_mcp_resources.py`. The worker
 read-only surface (`worker_mcp.py`) does **not** register resources; its exact
-eight-tool catalog contract is unchanged.
+nine-tool catalog contract is unchanged.
 
 ## 4. Worker read-only surface
 
-`hivemind/worker_mcp.py` exposes exactly eight read-only tools to managed
+`hivemind/worker_mcp.py` exposes exactly nine read-only tools to managed
 workers; everything else fails at the API for that credential anyway:
 
 ```text
@@ -136,14 +136,14 @@ assigned task — not at worker-process launch:
 
 - **Factory Droid**: the SDK receives a session-local `StdioMcpServerConfig`
   (`python -m hivemind.worker_mcp`). Before each prompt the runtime requires
-  the sole connected `hivemind` server, its exact eight-tool enabled catalog,
+  the sole connected `hivemind` server, its exact nine-tool enabled catalog,
   unambiguous vendor tool IDs (`mcp__hivemind__<name>` /
   `mcp___hivemind___<name>`), and a verified `restrict_tools` set of native
   scoped tools plus those MCP IDs. Missing or drifted evidence holds the turn;
   repository/parent `.factory/mcp.json` launchers are rejected, never merged.
 - **Oh my Pi (OMP)**: a fixed Bun SDK host starts sessions with
   `enableMCP: false`, `restrictToolNames: true`, ambient discovery disabled and
-  its MCP manager connected only to Hivemind. The eight tools are explicitly
+  its MCP manager connected only to Hivemind. The nine tools are explicitly
   allowed SDK custom tools plus the ordinary capture extension. A private
   nonce-bound startup receipt (`verify_omp`) is required before a prompt. The
   receipt proves initial registration, not ongoing liveness. Requires Bun and

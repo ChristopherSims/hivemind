@@ -6,7 +6,7 @@ from . import mcp
 TOOLS = (
     "hivemind_describe_tools", "hivemind_get_ledger", "hivemind_query_context",
     "hivemind_get_inbox", "hivemind_search", "hivemind_get_task",
-    "hivemind_get_notifications", "hivemind_get_conflicts",
+    "hivemind_wait_unblocked", "hivemind_get_notifications", "hivemind_get_conflicts",
 )
 OMP_TOOL_IDS = tuple("mcp__" + name for name in TOOLS)
 

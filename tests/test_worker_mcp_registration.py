@@ -311,7 +311,7 @@ def test_scoped_omp_host_disables_discovery_before_sdk_startup(tmp_path):
         "export async function createAgentSession(o:any){"
         "if(o.enableMCP !== false || o.restrictToolNames !== true || "
         "o.allowRestrictedCustomTools !== true || o.disableExtensionDiscovery !== true || "
-        "o.cacheWarming !== false || o.customTools.length !== 8) "
+        "o.cacheWarming !== false || o.customTools.length !== 9) "
         "throw Error('Unsafe startup'); return {session:{}};}")
     (sdk_root / "src/modes/rpc/rpc-mode.ts").write_text(
         "export async function runRpcMode(){console.log('scoped-startup');}")

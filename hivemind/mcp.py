@@ -388,6 +388,22 @@ def hivemind_extract_memories(request: dict) -> dict:
 def hivemind_get_task(task_id: str) -> dict:
     """Read durable assignment and checkpoint metadata; task text never grants file authority."""
     return call("GET", f"tasks/{task_id}")
+
+
+@server.tool(annotations=READ_ONLY)
+def hivemind_wait_unblocked(project_id: str, task_id: str, timeout_seconds: int = 30,
+                            poll_interval_seconds: float = 2) -> dict:
+    """Bounded block-on-upstream (R6): poll readiness until the task is startable or
+    the deadline passes. Still-blocked is a normal result (unblocked=false), never an
+    error. Waiting grants no permission and consumes no attempt budget."""
+    if not 0 <= timeout_seconds <= 120:
+        raise ValueError("timeout_seconds must be within 0..120")
+    if not 0.5 <= poll_interval_seconds <= 10:
+        raise ValueError("poll_interval_seconds must be within 0.5..10")
+    from urllib.parse import urlencode
+    return call("GET", f"projects/{project_id}/tasks/{task_id}/wait-unblocked?"
+                + urlencode({"timeout_seconds": timeout_seconds,
+                             "poll_interval_seconds": poll_interval_seconds}))
 @server.tool(annotations=LOCAL_WRITE)
 def hivemind_start_task(task_id: str, request: dict) -> dict:
     """Start/recover a task with owned scopes and a fresh fenced execution ID."""

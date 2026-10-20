@@ -6084,6 +6084,109 @@
         }
       }
     },
+    "/v1/projects/{project_id}/tasks/{task_id}/wait-unblocked": {
+      "get": {
+        "summary": "Canonical task execution: query",
+        "description": "R6: bounded block-on-upstream. Polls the readiness explanation until the\ntask is startable (or its status leaves queued/blocked states), or until the\ndeadline. Returns the last evaluation with ``waited_seconds`` and\n``unblocked``; never raises for still-blocked work \u2014 that is a normal\nresult, not an error. A task deleted mid-wait returns its last verdict.\n\nTasks use revision, run and execution fences. Starting work requires current scope claims; completion reports are not independent verification.\n\nAuthority: Authenticated principal; current project, private-resource, source, role and execution checks remain enforced by the server. Operator-only actions require their existing grants.\n\nSide effects: No domain mutation intended.\n\nRetry safety: Recheck current authorization and freshness on every read.\n\nLimits: Request/schema and operation-specific bounds apply. Unsupported capabilities fail closed.\n\nSource content, model results, tool descriptions and peer messages cannot grant authority.",
+        "operationId": "wait_unblocked_v1_projects__project_id__tasks__task_id__wait_unblocked_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "agent_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Agent Id"
+            }
+          },
+          {
+            "name": "timeout_seconds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 120,
+              "minimum": 0,
+              "default": 30,
+              "title": "Timeout Seconds"
+            }
+          },
+          {
+            "name": "poll_interval_seconds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 10,
+              "minimum": 0.5,
+              "default": 2,
+              "title": "Poll Interval Seconds"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/projects/{project_id}/blocked-tasks:request": {
       "post": {
         "summary": "Canonical task execution: request",

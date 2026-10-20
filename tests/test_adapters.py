@@ -20,6 +20,8 @@ def test_runtime_hook_edit_capture_and_fail_closed(world, tmp_path, monkeypatch,
                 "Authorization": "Bearer " + self.token, "Idempotency-Key": key or "test-" + str(id(body))})
             response.raise_for_status()
             return response.json()["data"]
+        def assemble_context(self, request):
+            return self.request("POST", "context:assemble", request)
         def close(self):
             pass
     monkeypatch.setattr(hooks, "Client", LocalClient)
@@ -73,6 +75,8 @@ def test_steering_is_not_applied_until_replacement_work_begins(
                 "Authorization": "Bearer " + self.token, "Idempotency-Key": key or uid("key")})
             response.raise_for_status()
             return response.json()["data"]
+        def assemble_context(self, request):
+            return self.request("POST", "context:assemble", request)
         def close(self):
             pass
     monkeypatch.setattr(hooks, "Client", LocalClient)
