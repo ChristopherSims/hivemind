@@ -24,6 +24,20 @@ def hash_token(token):
     return hashlib.sha256(token.encode()).hexdigest()
 
 
+def discovery_server_id(app) -> str:
+    """Stable per-deployment server identity from the canonical store directory.
+
+    SHA-256 over the resolved data-dir path: derived, not secret. Two apps on one
+    directory share the ID; a moved/renamed directory gets a new ID. This is
+    discovery metadata, never an authentication or authorization input.
+    """
+    directory = getattr(getattr(app.state, "store", None), "directory", None)
+    if directory is None:
+        raise Problem("store_not_available", 500)
+    return "srv_" + hashlib.sha256(
+        str(Path(directory).resolve()).encode()).hexdigest()[:24]
+
+
 def envelope(data):
     return {"protocol": "hivemind", "protocol_version": "0.1.0", "request_id": uid("req"), "data": data}
 
@@ -257,7 +271,11 @@ def create_app(directory=".hivemind-data", encoder=None, workers=True, capabilit
     async def discovery():
         from .credential_management import CAPABILITY_STATUS, DISCOVERY_CAPABILITIES
         credential_features = getattr(app.state, "credential_management", None) is not None
+        # Stable server identity: derived once per app from the canonical store directory,
+        # not a rotating secret and not a credential.
+        from .api import discovery_server_id
         return {"protocol": "hivemind", "supported_versions": ["0.1.0"], "api_base": "/v1",
+                "server_id": discovery_server_id(app),
                 "agent_tool_context": {"url": "/v1/tool-context",
                                        "description": "Operation purpose, schemas, authority, side effects, "
                                                       "retry safety and limits; descriptions grant no permissions.",
@@ -357,7 +375,8 @@ def create_app(directory=".hivemind-data", encoder=None, workers=True, capabilit
                     "runtime.acp": {"protocol": "Agent Client Protocol", "version": 1,
                                     "explicit_operator_configuration": True,
                                     "pause_resume": False, "os_sandbox": False}},
-                "limits": {"max_batch_events": 100, "max_batch_bytes": 1048576, "max_event_bytes": 131072}}
+                "limits": {"max_batch_events": 100, "max_batch_bytes": 1048576, "max_event_bytes": 131072,
+                           "max_inline_content_bytes": 65536}}
 
     @app.get("/v1/tool-context")
     async def tool_context(operation_id: str | None = Query(None, max_length=512), p=Depends(principal)):

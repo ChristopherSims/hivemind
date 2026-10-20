@@ -120,7 +120,10 @@ class Event(Model):
     event_id: ID
     type: Literal[
         "hivemind.context.agent.status_reported", "hivemind.context.tool.started",
-        "hivemind.context.tool.completed", "hivemind.context.file.changed",
+        "hivemind.context.tool.progressed", "hivemind.context.tool.completed",
+        "hivemind.context.file.changed", "hivemind.context.vcs.observed",
+        "hivemind.context.conversation.observed", "hivemind.context.blocker.recorded",
+        "hivemind.context.correction.recorded",
         "hivemind.context.run.status_changed", "hivemind.context.run.ended",
         "hivemind.context.capture.gap_detected", "hivemind.context.decision.recorded",
         "hivemind.context.editor.buffer_observed",
@@ -146,7 +149,11 @@ class Event(Model):
         # Separate strict payload models are also exported as normative schemas.
         classes = {
             "agent.status_reported": StatusData, "tool.started": ToolStart,
-            "tool.completed": ToolEnd, "file.changed": FileData,
+            "tool.progressed": ToolProgress, "tool.completed": ToolEnd,
+            "file.changed": FileData, "vcs.observed": VcsObserved,
+            "conversation.observed": ConversationObserved,
+            "blocker.recorded": BlockerRecorded,
+            "correction.recorded": CorrectionRecorded,
             "run.status_changed": RunStatus, "run.ended": RunStatus,
             "capture.gap_detected": GapData, "decision.recorded": DecisionData,
             "editor.buffer_observed": EditorBufferData,
@@ -175,6 +182,45 @@ class ToolStart(Model):
 class ToolEnd(Model):
     call_id: ID
     success: bool | None = None
+
+
+class ToolProgress(Model):
+    call_id: ID
+    detail: Text
+
+
+class VcsObserved(Model):
+    """Sanitized branch/commit/status observation by the runtime.
+
+    Only hash/branch/path shapes are accepted — never credentials, remotes,
+    or diff bodies.
+    """
+
+    workspace_path: str = Field(min_length=1, max_length=4096)
+    branch: str | None = Field(default=None, min_length=1, max_length=256)
+    head_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{40}$|^[a-f0-9]{64}$")
+    dirty_count: int | None = Field(default=None, ge=0, le=100000)
+    _path = field_validator("workspace_path")(safe_path)
+
+
+class ConversationObserved(Model):
+    """Opt-in visible conversational context; agent-reported, never canonical."""
+
+    subject: Text
+    redaction: Literal["none", "partial", "full"] = "none"
+
+
+class BlockerRecorded(Model):
+    text: Text
+    requested_assistance: Literal["none", "review", "steer", "handoff", "operator"] = "none"
+    evidence_refs: list[Ref] = Field(default_factory=list, max_length=32)
+
+
+class CorrectionRecorded(Model):
+    """Explicit correction of an earlier interpretation, without history rewriting."""
+
+    text: Text
+    target_refs: list[Ref] = Field(min_length=1, max_length=32)
 
 
 class FileData(Model):

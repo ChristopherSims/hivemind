@@ -292,6 +292,48 @@ class Service:
                 call = run["tools"].get(payload["call_id"])
                 if not call or call["state"] != "completed":
                     run["tools"][payload["call_id"]] = {**payload, "state": "active"}
+            elif suffix == "tool.progressed":
+                call = run["tools"].get(payload["call_id"])
+                if not call or call["state"] != "active":
+                    raise Problem("tool_progress_without_started_call", 409)
+                progress = {**call, "detail": payload["detail"], "state": "active"}
+                history = call.get("progress")
+                history = history if isinstance(history, list) else []
+                history.append(request.event_id)
+                if len(history) > 16:
+                    history = history[-16:]
+                progress["progress"] = history
+                run["tools"][payload["call_id"]] = progress
+            elif suffix == "vcs.observed":
+                # Sanitized branch/head shape only; stale observations never rewind state.
+                previous = run.get("vcs") or {}
+                if (previous.get("head_sha256") != payload.get("head_sha256")
+                        or previous.get("branch") != payload.get("branch")
+                        or payload.get("dirty_count") != previous.get("dirty_count")):
+                    run["vcs"] = {**payload, "observed_event_ids":
+                                  [*(previous.get("observed_event_ids") or []), request.event_id][-8:]}
+            elif suffix == "blocker.recorded":
+                self.evidence(principal, request.project_id, payload.get("evidence_refs", []))
+                summary = run.get("summary") or {}
+                blockers = summary.get("blockers") if isinstance(summary.get("blockers"), list) else []
+                blockers.append({"text": payload["text"],
+                                 "requested_assistance": payload["requested_assistance"],
+                                 "event_id": request.event_id})
+                summary["blockers"] = blockers[-8:]
+                run["summary"] = {**summary, "origin": summary.get("origin", "agent_reported")}
+            elif suffix == "correction.recorded":
+                self.evidence(principal, request.project_id, payload["target_refs"])
+                corrections = run.get("corrections") if isinstance(run.get("corrections"), list) else []
+                corrections.append({"text": payload["text"],
+                                    "target_refs": payload["target_refs"],
+                                    "event_id": request.event_id})
+                run["corrections"] = corrections[-8:]
+            elif suffix == "conversation.observed":
+                # Opt-in visible conversational context; stored run-shaped, never canonical message data.
+                observed = run.get("conversation_contexts") if isinstance(run.get("conversation_contexts"), list) else []
+                observed.append({"subject": payload["subject"], "redaction": payload["redaction"],
+                                 "event_id": request.event_id})
+                run["conversation_contexts"] = observed[-8:]
             elif suffix == "file.changed":
                 path_key = payload["path"] if self.store.project(request.project_id)["path_case_sensitive"] else (
                     payload["path"].casefold())
@@ -992,6 +1034,44 @@ class Service:
                     return True
         return False
 
+    def _semantic_candidates(self, principal, request, limit=3, min_score=0.5):
+        """Authorized similar-intent claims for a new claim's declared intent.
+
+        Borrowed from the plan's level-3 arbitration: retrieval *suggests* overlap;
+        it never denies anything. Uses the same ranked search as the retrieval API
+        (authorization rechecked per hit); disabled/degraded indexes yield no
+        candidates and the claim proceeds — similarity cannot block work.
+        """
+        text = (request.intent or "").strip()
+        if len(text) < 8:
+            return []
+        indexes = getattr(self, "indexes", None)
+        if indexes is None:
+            return []
+        from .models import SearchQuery
+        matched_kind = "work_claim"
+        try:
+            results = indexes.search(principal, SearchQuery(
+                project_id=request.project_id, query=text, mode="semantic",
+                resource_kinds=[matched_kind], limit=limit))
+        except Problem:
+            return []
+        own = set()
+        out = []
+        for hit in results.get("results", []):
+            body = hit.get("resource") or {}
+            claim_id = hit.get("resource_id")
+            if claim_id in own:
+                continue
+            if body.get("state") not in ("active", "reserved") or body.get("expires_at", 0) <= time.time():
+                continue
+            score = hit.get("score", 0.0)
+            if score < min_score:
+                continue
+            own.add(claim_id)
+            out.append((body, score))
+        return out
+
     def claim(self, principal, request, state="active"):
         run = self.run(principal, request.run_id)
         if run["agent_id"] != request.agent_id or run["project_id"] != request.project_id:
@@ -1014,6 +1094,23 @@ class Service:
                     "policy_version": 1, "state": "denied", "enforcement": "new_claim_denied",
                 })
                 return {"denied": True, "conflict": conflict}
+        # Level-3 semantic candidates (plan 14.5): similar declared intent suggests an
+        # overlap, but similarity alone never denies a claim. The claim is accepted and
+        # a candidate conflict records the pair for an authorized reviewer to affirm as
+        # a real conflict or dismiss; deterministic arbitration stays evidence-backed.
+        candidates = self._semantic_candidates(principal, request)
+        if candidates:
+            candidate = self.create(principal, "conflict", {
+                "project_id": request.project_id, "winner_claim_id": candidates[0][0]["id"],
+                "requesting_run_id": request.run_id, "scope_ids": request.scope_ids,
+                "policy_version": 1, "state": "candidate",
+                "enforcement": "advisory_similarity",
+                "basis": [{"claim_id": body["id"], "score": score,
+                           "matched_intent": body["intent"]} for body, score in candidates],
+            })
+            for claim_id in {body["id"] for body, _ in candidates}:
+                self.store.relate(request.project_id, candidate["id"], claim_id, "SUSPECTS")
+            self.store.relate(request.project_id, candidate["id"], request.run_id, "SUSPECTS")
         claim = self.create(principal, "work_claim", {
             **request.model_dump(), "state": state, "expires_at": time.time() + request.ttl_seconds,
             "ownership_epoch": self.store.project(request.project_id)["seq"] + 1,

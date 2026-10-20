@@ -1,0 +1,59 @@
+{
+  "additionalProperties": false,
+  "description": "Sanitized branch/commit/status observation by the runtime.\n\nOnly hash/branch/path shapes are accepted \u2014 never credentials, remotes,\nor diff bodies.",
+  "properties": {
+    "workspace_path": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Workspace Path",
+      "type": "string"
+    },
+    "branch": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Branch"
+    },
+    "head_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9]{40}$|^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Head Sha256"
+    },
+    "dirty_count": {
+      "anyOf": [
+        {
+          "maximum": 100000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dirty Count"
+    }
+  },
+  "required": [
+    "workspace_path"
+  ],
+  "title": "VcsObserved",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -68,8 +68,13 @@
       "enum": [
         "hivemind.context.agent.status_reported",
         "hivemind.context.tool.started",
+        "hivemind.context.tool.progressed",
         "hivemind.context.tool.completed",
         "hivemind.context.file.changed",
+        "hivemind.context.vcs.observed",
+        "hivemind.context.conversation.observed",
+        "hivemind.context.blocker.recorded",
+        "hivemind.context.correction.recorded",
         "hivemind.context.run.status_changed",
         "hivemind.context.run.ended",
         "hivemind.context.capture.gap_detected",

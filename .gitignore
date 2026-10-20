@@ -15,5 +15,9 @@ playwright-report/
 #testing stuff
 benchmarks
 benchmarks/*
+.memory
+.memory/*
 
-benchmarks/ >> .gitignore
+# planning/milestone docs moved to .memory by the operator
+hivemind-plan.md
+completed.md

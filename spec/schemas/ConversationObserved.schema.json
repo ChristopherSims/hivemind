@@ -1,0 +1,28 @@
+{
+  "additionalProperties": false,
+  "description": "Opt-in visible conversational context; agent-reported, never canonical.",
+  "properties": {
+    "subject": {
+      "maxLength": 65536,
+      "minLength": 1,
+      "title": "Subject",
+      "type": "string"
+    },
+    "redaction": {
+      "default": "none",
+      "enum": [
+        "none",
+        "partial",
+        "full"
+      ],
+      "title": "Redaction",
+      "type": "string"
+    }
+  },
+  "required": [
+    "subject"
+  ],
+  "title": "ConversationObserved",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
