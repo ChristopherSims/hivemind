@@ -179,29 +179,6 @@ conflicts, Nexus steering, and verified shared-memory reuse.
 The [ingestion-crash test](docs/factory-crash.md) kills an open event transaction,
 then checks spool replay, duplicate ingestion, and expired-claim permit denial.
 
-## Alpha limitations (not yet validated)
-
-This is an **alpha** of a local reference implementation. The boundaries below
-are deliberately unstated-as-done; see [limitations](docs/limitations.md) and
-[validation](docs/validation.md) for the full recorded evidence and gates.
-
-- **Platforms:** only Windows is exercised end-to-end in this working tree.
-  macOS/Linux end-to-end service runs and Linux native worker provisioning
-  are open; Linux launches fail closed outside verified bubblewrap/cgroup
-  prerequisites.
-- **Live vendor/model validation:** recent work is offline/contract-tested.
-  Bounded live Factory/OMP runs exist historically; Factory interrupted-session
-  recovery failed closed and remains unvalidated. No paid model turns were run
-  for recent batches.
-- **Dashboard browser checks:** the managed-Chromium suite has not been rerun
-  against the newest UI batch; backend suites and the production build pass.
-- **Protocol conformance:** command contracts, crash/rollback durability and
-  schema conformance are tested internally; **independent third-party client
-  conformance and external A2A/Agent Client Protocol interop are not claimed**.
-- **Packaging/licensing gates** before any wheel/redistribution: audit
-  sqlite-vec's bundled binary dependencies and review the embedding model's
-  complete terms ([licensing notes](docs/licensing.md)).
-
 ## Safety
 
 Incoming messages, board text, memories, task titles, and graph results are **untrusted evidence**.

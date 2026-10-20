@@ -38,5 +38,4 @@ LadybugDB / ladybug 0.21.2 (MIT):
 
 EmbeddingGemma 2 weights are not included in source; they are downloaded at
 runtime from their pinned revision, with separate Apache 2.0 model terms and
-the Gemma Prohibited Use Policy. Review docs/licensing.md before
-redistribution or a new deployment.
+the Gemma Prohibited Use Policy. See docs/licensing.md.

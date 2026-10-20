@@ -131,8 +131,8 @@ sweeping are disabled prerequisites. See [project workspaces](dashboard-search.m
   have not been implemented.
 - **Operations:** explicit canonical backups, index replay, source hiding and dependent memory
   invalidation. Automated retention compaction, dependency-wide deletion verification,
-  encrypted spools, crypto-erasure, backup tombstone reconciliation, packaged wheels with
-  embedded frontend assets, and multi-OS testing remain release gates.
+  encrypted spools, crypto-erasure, backup tombstone reconciliation, and multi-OS testing
+  remain release gates.
 
 Deleted resources stop appearing in authorized reads/search/context immediately. Background
 jobs remove current vectors/graph exposure. SQLite free pages/WAL, old backups, adapter spools,
