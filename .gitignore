@@ -11,3 +11,9 @@ dashboard/dist/
 test-results/
 playwright-report/
 *.egg-info/
+
+#testing stuff
+benchmarks
+benchmarks/*
+
+benchmarks/ >> .gitignore
